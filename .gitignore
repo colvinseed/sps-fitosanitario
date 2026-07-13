@@ -1,0 +1,14 @@
+# NUNCA subir credenciales ni archivos de entorno
+.env
+*.env
+credentials*
+secrets*
+
+# Artefactos de trabajo local
+__pycache__/
+*.pyc
+output/clima*.xlsx
+*.log
+
+# Copias locales de datos históricos (tu copia de escritorio)
+historico/

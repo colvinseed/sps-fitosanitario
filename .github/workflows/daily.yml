@@ -1,0 +1,45 @@
+name: Pronóstico fitosanitario diario SPS
+
+# Ejecuta el pipeline todos los días a las 10:00 UTC = 06:00 Chile (invierno, UTC-4).
+# En horario de verano (UTC-3) equivaldría a las 07:00 Chile; ajustar si se desea.
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:        # permite dispararlo también a mano desde la pestaña Actions
+
+# Permite que el workflow escriba en el repositorio (para publicar el HTML)
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Ejecutar pipeline diario
+        env:
+          # >>> Las credenciales provienen de GitHub Secrets (Settings → Secrets → Actions).
+          # >>> NUNCA se escriben en el código ni quedan en el log.
+          VILAB_USER: ${{ secrets.VILAB_USER }}
+          VILAB_PASSWORD: ${{ secrets.VILAB_PASSWORD }}
+          VILAB_BASE: ${{ secrets.VILAB_BASE }}
+        run: python3 src/run_daily.py
+
+      - name: Publicar artefacto actualizado
+        run: |
+          git config user.name  "SPS Daily Bot"
+          git config user.email "bot@spschile.local"
+          git add output/index.html
+          # Commit solo si hubo cambios
+          git diff --staged --quiet || git commit -m "Actualización diaria $(date -u +%Y-%m-%d)"
+          git push
