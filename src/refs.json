@@ -1,1 +1,43 @@
-{"mildew_milioncast": ["Gilles, T., Phelps, K., Clarkson, J.P. & Kennedy, R. (2004). Development of MILIONCAST, an Improved Model for Predicting Downy Mildew Sporulation on Onions. Plant Disease 88(7): 695–702.", "Jesperson, G.D. & Sutton, J.C. (1987). Evaluation of a forecaster for downy mildew of onion (Allium cepa L.). Crop Protection 6: 95–103.", "de Visser, C.L.M. (1998). Development of a downy mildew advisory model based on downcast. European Journal of Plant Pathology 104: 933–943."], "alt_porri": ["Suheri, H. & Price, T.V. (2000). Infection of onion leaves by Alternaria porri and Stemphylium vesicarium and disease development in controlled environments. Plant Pathology 49: 375–382.", "Everts, K.L. & Lacy, M.L. (1990). The influence of dew duration, relative humidity, and leaf senescence on conidial formation and infection of onion by Alternaria porri. Phytopathology 80: 1203–1207.", "Pacific Northwest Pest Management Handbooks — Onion (Allium cepa): Purple Blotch (pnwhandbooks.org)."], "alt_dauci": ["Pitblado, R.E. (1992). The development and implementation of TOM-CAST: A weather-timed fungicide spray program for field tomatoes. Ministry of Agriculture and Food, Ontario, Canada.", "Cornell Vegetables — Carrot Leaf Blight Diseases and their Management (vegetables.cornell.edu).", "UC IPM — Alternaria Leaf Blight / Carrot: Pest Management Guidelines (ipm.ucanr.edu)."], "alt_bras": ["Pacific Northwest Pest Management Handbooks — Cabbage and Cauliflower (Brassica oleracea): Alternaria Diseases (pnwhandbooks.org).", "Cornell Vegetables — Alternaria Leaf Spot of Brassicas (vegetables.cornell.edu).", "UW Vegetable Pathology — Brassica Alternaria Leaf Spot (vegpath.plantpath.wisc.edu)."], "bot_squamosa": ["Sutton, J.C., James, T.D.W. & Rowell, P.M. (1986). BOTCAST: a forecasting system to time the initial fungicide spray for managing Botrytis leaf blight of onions. Agriculture, Ecosystems & Environment 18(2): 123–143.", "Carisse, O., et al. (2012). A new risk indicator for botrytis leaf blight of onion caused by Botrytis squamosa based on infection efficiency of airborne inoculum. Plant Pathology 61: 1154–1164.", "Tanner, M.R. & Sutton, J.C. (1981). Effect of leaf wetness duration and temperature on infection of onion leaves by Botrytis squamosa. Phytopathology 71: 565."], "bot_cinerea": ["Pacific Northwest Pest Management Handbooks — Botrytis (Gray Mold) host-disease pages (pnwhandbooks.org).", "Williamson, B., Tudzynski, B., Tudzynski, P. & van Kan, J.A.L. (2007). Botrytis cinerea: the cause of grey mould disease. Molecular Plant Pathology 8(5): 561–580.", "Nota: modelo de infección genérico basado en umbrales T × mojado de literatura; B. cinerea no cuenta con un modelo cuantitativo específico consensuado como BOTCAST."], "sclero": ["Clarkson, J.P., et al. (2014). A model for Sclerotinia sclerotiorum infection and disease development in lettuce, based on the effects of temperature, relative humidity and ascospore density. (PMC3988091).", "Willbur, J.F., et al. (2018). Weather-based models for assessing the risk of Sclerotinia sclerotiorum apothecial presence in soybean fields. Plant Disease 102(1): 73–84.", "Foster, A.J., Kora, C., McDonald, M.R. & Boland, G.R. (2011). Development and validation of a disease forecast model for Sclerotinia rot of carrot. Canadian Journal of Plant Pathology 33: 187–201.", "Clarkson, J.P., et al. (2007). Ascospore release and survival in Sclerotinia sclerotiorum. — germinación carpogénica óptima 18–20 °C."]}
+{
+ "mildew_milioncast": [
+  "Gilles, T., Phelps, K., Clarkson, J.P. & Kennedy, R. (2004). Development of MILIONCAST, an Improved Model for Predicting Downy Mildew Sporulation on Onions. Plant Disease 88(7): 695–702.",
+  "Jesperson, G.D. & Sutton, J.C. (1987). Evaluation of a forecaster for downy mildew of onion (Allium cepa L.). Crop Protection 6: 95–103.",
+  "de Visser, C.L.M. (1998). Development of a downy mildew advisory model based on downcast. European Journal of Plant Pathology 104: 933–943."
+ ],
+ "alt_porri": [
+  "Suheri, H. & Price, T.V. (2000). Infection of onion leaves by Alternaria porri and Stemphylium vesicarium and disease development in controlled environments. Plant Pathology 49: 375–382.",
+  "Everts, K.L. & Lacy, M.L. (1990). The influence of dew duration, relative humidity, and leaf senescence on conidial formation and infection of onion by Alternaria porri. Phytopathology 80: 1203–1207.",
+  "Pacific Northwest Pest Management Handbooks — Onion (Allium cepa): Purple Blotch (pnwhandbooks.org)."
+ ],
+ "alt_dauci": [
+  "Pitblado, R.E. (1992). The development and implementation of TOM-CAST: A weather-timed fungicide spray program for field tomatoes. Ministry of Agriculture and Food, Ontario, Canada.",
+  "Cornell Vegetables — Carrot Leaf Blight Diseases and their Management (vegetables.cornell.edu).",
+  "UC IPM — Alternaria Leaf Blight / Carrot: Pest Management Guidelines (ipm.ucanr.edu)."
+ ],
+ "alt_bras": [
+  "Pacific Northwest Pest Management Handbooks — Cabbage and Cauliflower (Brassica oleracea): Alternaria Diseases (pnwhandbooks.org).",
+  "Cornell Vegetables — Alternaria Leaf Spot of Brassicas (vegetables.cornell.edu).",
+  "UW Vegetable Pathology — Brassica Alternaria Leaf Spot (vegpath.plantpath.wisc.edu)."
+ ],
+ "bot_squamosa": [
+  "Sutton, J.C., James, T.D.W. & Rowell, P.M. (1986). BOTCAST: a forecasting system to time the initial fungicide spray for managing Botrytis leaf blight of onions. Agriculture, Ecosystems & Environment 18(2): 123–143.",
+  "Carisse, O., et al. (2012). A new risk indicator for botrytis leaf blight of onion caused by Botrytis squamosa based on infection efficiency of airborne inoculum. Plant Pathology 61: 1154–1164.",
+  "Tanner, M.R. & Sutton, J.C. (1981). Effect of leaf wetness duration and temperature on infection of onion leaves by Botrytis squamosa. Phytopathology 71: 565."
+ ],
+ "bot_cinerea": [
+  "Pacific Northwest Pest Management Handbooks — Botrytis (Gray Mold) host-disease pages (pnwhandbooks.org).",
+  "Williamson, B., Tudzynski, B., Tudzynski, P. & van Kan, J.A.L. (2007). Botrytis cinerea: the cause of grey mould disease. Molecular Plant Pathology 8(5): 561–580.",
+  "Nota: modelo de infección genérico basado en umbrales T × mojado de literatura; B. cinerea no cuenta con un modelo cuantitativo específico consensuado como BOTCAST."
+ ],
+ "sclero": [
+  "Clarkson, J.P., et al. (2014). A model for Sclerotinia sclerotiorum infection and disease development in lettuce, based on the effects of temperature, relative humidity and ascospore density. (PMC3988091).",
+  "Willbur, J.F., et al. (2018). Weather-based models for assessing the risk of Sclerotinia sclerotiorum apothecial presence in soybean fields. Plant Disease 102(1): 73–84.",
+  "Foster, A.J., Kora, C., McDonald, M.R. & Boland, G.R. (2011). Development and validation of a disease forecast model for Sclerotinia rot of carrot. Canadian Journal of Plant Pathology 33: 187–201.",
+  "Clarkson, J.P., et al. (2007). Ascospore release and survival in Sclerotinia sclerotiorum. — germinación carpogénica óptima 18–20 °C."
+ ],
+ "allii": [
+  "Furuya, H., Takanashi, H., Fuji, S., Nagai, Y. & Naito, H. (2009). Modeling Infection of Spring Onion by Puccinia allii in Response to Temperature and Leaf Wetness. Phytopathology 99(8): 951–956.",
+  "Duthie, J.A. (1997). Models of the response of foliar parasites to the combined effects of temperature and duration of wetness. Phytopathology 87: 1088–1095.",
+  "Pacific Northwest Pest Management Handbooks — Garlic/Onion Rust (Puccinia allii): infección óptima 10–15°C, 100% HR, mínimo ~4 h de mojado foliar."
+ ]
+}

@@ -41,6 +41,7 @@ def build(results, out_path=None, window_label=None):
         mildew=results['mildew'],
         alternaria=results['alternaria'],
         botrytis=results['botrytis'],
+        roya=results.get('roya', {}),
         docs_es=docs_es,
         docs_en=docs_en,
         ui=ui,

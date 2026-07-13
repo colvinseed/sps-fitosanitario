@@ -125,6 +125,7 @@
   <button onclick="setPage(1)" data-i18n="nav_alt"></button>
   <button onclick="setPage(2)" data-i18n="nav_bot"></button>
   <button onclick="setPage(3)" data-i18n="nav_scl"></button>
+  <button onclick="setPage(4)" data-i18n="nav_roya"></button>
 </div></nav>
 
 <div class="wrap">
@@ -228,6 +229,19 @@
   <div class="cards"><div class="card"><div class="lbl" data-i18n="scl_c_days"></div><div class="val" style="color:#3C3489" id="sc-d">0</div></div><div class="card"><div class="lbl" data-i18n="scl_c_max"></div><div class="val" id="sc-mx">0</div></div><div class="card"><div class="lbl" data-i18n="scl_c_rm"></div><div class="val" id="sc-rm">0</div></div></div>
   <div class="info" data-i18n-html="scl_read"></div>
   <div class="foot" data-i18n="scl_foot"></div>
+</div>
+
+<!-- P4 ROYA (Puccinia allii) -->
+<div class="page" id="p4">
+  <h2><span data-i18n="roya_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
+  <p class="sub"><i>Puccinia allii</i> · <span data-i18n="roya_sub"></span></p>
+  <div class="info" data-i18n-html="roya_info"></div>
+  <button class="doclink" onclick="openDoc('allii')" data-i18n="doclink"></button>
+  <div class="stations" id="ra-st"></div>
+  <div class="chartbox"><div class="h"><span><span data-i18n="sev_inf"></span> · <span id="ra-lbl"></span></span><span class="r" id="ra-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="ra-ch"></canvas></div>
+    <div class="legend"><span><span class="dot" style="background:#C05621"></span><span data-i18n="roya_leg"></span></span><span><span style="width:14px;height:2px;background:#888780;display:inline-block"></span><span data-i18n="wet_leg"></span></span></div></div>
+  <div class="cards"><div class="card"><div class="lbl" data-i18n="c_days_inf"></div><div class="val" style="color:#C05621" id="ra-d">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_max"></div><div class="val" id="ra-mx">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_cum"></div><div class="val" id="ra-sm">0</div></div></div>
+  <div class="foot" data-i18n="roya_foot"></div>
 </div>
 </div>
 </div>
@@ -355,11 +369,21 @@ function drawSclero(){
       scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,max:100,title:{display:true,text:t('scl_leg_idx'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}}},
       plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>i.datasetIndex===0?t('tt_favidx')+': '+d[i.dataIndex].scl:t('tt_apoth')+': '+d[i.dataIndex].scl_ready}}}}});
 }
+function drawRoya(){
+  const R=(D.roya&&D.roya[sel])?D.roya[sel]:{data:[],region:''};
+  const d=R.data,lb=d.map(e=>e.f.slice(5));
+  document.getElementById('ra-lbl').textContent=sel;document.getElementById('ra-reg').textContent=t('region')+': '+R.region;
+  document.getElementById('ra-d').textContent=d.filter(e=>e.allii>0).length;
+  document.getElementById('ra-mx').textContent=(d.length?Math.max(...d.map(e=>e.allii)):0).toFixed(1);
+  document.getElementById('ra-sm').textContent=d.reduce((a,e)=>a+e.allii,0).toFixed(1);
+  barLine('ra-ch','ra',lb,d.map(e=>e.allii),'#C05621',d.map(e=>e.wet),84,t('sev_04'),i=>{const e=d[i.dataIndex];return i.datasetIndex===0?t('sev_04')+': '+e.allii+(e.tm!=null?' · '+e.tm+'°C':''):t('wet_h')+': '+e.wet;});
+}
 function renderAll(){
   if(curPage===0){mkSt('m-st');drawMildewStack();drawMildew();}
   else if(curPage===1){const s=curSub[1];mkSt(['ap-st','ad-st','ab-st'][s]);drawAlt(s);}
   else if(curPage===2){const s=curSub[2];mkSt(['bs-st','bc-st'][s]);drawBot(s);}
   else if(curPage===3){mkSt('sc-st');drawSclero();}
+  else if(curPage===4){mkSt('ra-st');drawRoya();}
 }
 applyLang();
 renderAll();

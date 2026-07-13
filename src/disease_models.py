@@ -13,13 +13,14 @@ Fases modeladas (cada patógeno según lo que la literatura documenta mejor):
   - Botrytis squamosa (cebolla) ................. INFECCIÓN     (BOTCAST + Carisse 2012)
   - Botrytis cinerea (moho gris polífago) ....... INFECCIÓN     (umbral T×mojado genérico)
   - Sclerotinia sclerotiorum (moho blanco) ...... ÍNDICE FAVORABILIDAD (asume inóculo en suelo)
+  - Puccinia allii (roya cebolla/cebollín) ...... INFECCIÓN     (Furuya et al. 2009, Duthie/Weibull)
 
 NOTA IMPORTANTE: el mojado foliar se estima por proxy de HR>=90% (no medido).
 Todos los modelos salvo la esporulación del mildiú dependen de ese proxy.
 Parámetros sin recalibrar a Chile — salidas referenciales, no prescriptivas.
 
 © 2026 Winston Colvin — South Pacific Seeds Chile
-Versión 1.0 · 2026-07-13
+Versión 1.1 · 2026-07-13 (+ Puccinia allii)
 """
 
 import math
@@ -240,6 +241,65 @@ def bot_cinerea(T, wet):
 
 
 # ===========================================================================
+# PUCCINIA ALLII (roya de cebolla/cebollín, infección)  ·  Furuya et al. 2009
+# ---------------------------------------------------------------------------
+# Modelo de infección por urediniosporas en función de temperatura y mojado
+# foliar. Furuya, Takanashi, Fuji, Nagai & Naito (2009), Phytopathology
+# 99:951-956, ajustaron la infección relativa con la ecuación de Duthie (forma
+# modificada de Weibull), R²=0.9369.
+#
+# Parámetros epidemiológicos CONFIRMADOS por la literatura (Furuya 2009; PNW
+# Handbook), usados aquí para definir los factores:
+#   - Infección entre 6.5 y 27 h de mojado (10-25°C); requiere >=10 h a 5°C.
+#   - Aumento rápido de infección entre 6.5 y 15 h de mojado (10-20°C).
+#   - Óptimo en clima FRESCO 10-15°C; a 25°C casi no hay infección pese al mojado.
+#   - Mínimo ~4-6 h de mojado para cualquier infección (PNW; Morinaka).
+#
+# ADVERTENCIA (calibración): los coeficientes numéricos exactos (a,b,c) del
+# ajuste de Duthie de Furuya están en el paper original (acceso restringido).
+# Esta implementación reproduce la ESTRUCTURA y los rangos publicados mediante
+# factores por tramos (igual estilo que los demás modelos de esta suite), NO
+# los coeficientes originales. Salida referencial 0-4, a calibrar en terreno.
+#
+# ADVERTENCIA (inóculo): la roya tiene fuerte componente de inóculo transportado
+# por viento a larga distancia; este modelo estima la VENTANA de infección
+# favorable, no la llegada del inóculo (análogo a la nota de Sclerotinia).
+#
+# ADVERTENCIA (hospedante): el ajuste original es en cebollín (Allium fistulosum).
+# En cebolla (A. cepa) el mismo patógeno infecta, pero A. cepa es más resistente;
+# la extrapolación es razonable pero conservadora.
+# ===========================================================================
+def puccinia_allii(T, wet):
+    """
+    Índice de infección de roya (Puccinia allii) 0-4.
+    T   : temperatura media del período de mojado (°C)
+    wet : duración de mojado foliar (h, proxy HR>=WET_HR)
+    Patógeno de clima fresco: óptimo 10-15°C, colapsa >=25°C.
+    """
+    if T is None or wet < 4 or T < 3 or T > 26:
+        return 0.0
+    # Factor de temperatura (asimétrico, óptimo fresco 10-15°C; cae fuerte >20°C)
+    if 10 <= T <= 15:            tf = 1.0     # óptimo confirmado
+    elif 15 < T <= 18:           tf = 0.8
+    elif 8 <= T < 10:            tf = 0.7
+    elif 18 < T <= 20:           tf = 0.55
+    elif 5 <= T < 8:             tf = 0.4
+    elif 20 < T <= 23:           tf = 0.30    # infección escasa acercándose al límite cálido
+    elif 3 <= T < 5:             tf = 0.20    # a 5°C requiere >=10 h de mojado
+    else:                        tf = 0.10    # 23-26°C: casi nula (a 25°C casi no hay uredinias)
+    # Factor de mojado foliar (aumento rápido 6.5-15 h; requiere >=6 h para subir)
+    if wet < 6:      wf = 0.15               # mínimo marginal
+    elif wet < 10:   wf = 0.45               # entra el rango de infección
+    elif wet < 15:   wf = 0.80               # ascenso rápido documentado
+    elif wet < 27:   wf = 1.0                # meseta hasta ~27 h
+    else:            wf = 1.0
+    # A <8°C, la infección real exige mojados largos: penaliza mojado corto en frío
+    if T < 8 and wet < 10:
+        wf *= 0.5
+    return round(tf * wf * 4, 1)
+
+
+# ===========================================================================
 # SCLEROTINIA SCLEROTIORUM (índice favorabilidad)  ·  asume inóculo en suelo
 # ===========================================================================
 def _sclero_conducive(Tmean_day, hr_mean_day):
@@ -290,7 +350,7 @@ def compute_all(station_dfs, window_days=None):
     Devuelve la estructura de datos lista para el artefacto:
       {'mildew': {...}, 'alternaria': {...}, 'botrytis': {...}, 'meta': {...}}
     """
-    mildew, alternaria, botrytis = {}, {}, {}
+    mildew, alternaria, botrytis, roya = {}, {}, {}, {}
 
     for st, raw in station_dfs.items():
         if st not in STATIONS:
@@ -312,7 +372,7 @@ def compute_all(station_dfs, window_days=None):
         daily = df.groupby('date').agg(Tmean=('T', 'mean'), HRmean=('HR', 'mean'))
         scl = compute_sclerotinia(daily)
 
-        a_rows, b_rows = [], []
+        a_rows, b_rows, r_rows = [], [], []
         for ds in dias:
             dd = pd.to_datetime(ds).date()
             dur, Tm = wev.get(dd, (0, None))
@@ -325,12 +385,15 @@ def compute_all(station_dfs, window_days=None):
                                squa=bot_squamosa(Tm, dur),
                                cin=bot_cinerea(Tm, dur),
                                scl=sidx, scl_ready=sready))
+            r_rows.append(dict(f=ds, wet=dur, tm=Tm,
+                               allii=puccinia_allii(Tm, dur)))
 
         # Recorte de ventana (para la vista diaria de N días)
         if window_days:
             m_rows = m_rows[-window_days:]
             a_rows = a_rows[-window_days:]
             b_rows = b_rows[-window_days:]
+            r_rows = r_rows[-window_days:]
 
         # Resúmenes de mildiú
         strong = sum(1 for e in m_rows if e['mc'] > 4)
@@ -343,5 +406,6 @@ def compute_all(station_dfs, window_days=None):
                           mod=mod, low=low, nulo=nulo, data=m_rows)
         alternaria[st] = dict(region=cfg['region'], data=a_rows)
         botrytis[st] = dict(region=cfg['region'], data=b_rows)
+        roya[st] = dict(region=cfg['region'], data=r_rows)
 
-    return dict(mildew=mildew, alternaria=alternaria, botrytis=botrytis)
+    return dict(mildew=mildew, alternaria=alternaria, botrytis=botrytis, roya=roya)
