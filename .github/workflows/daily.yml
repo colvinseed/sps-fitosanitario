@@ -37,9 +37,11 @@ jobs:
 
       - name: Publicar artefacto actualizado
         run: |
+          # Copiar el resultado también a la raíz: GitHub Pages sirve desde /(root)
+          cp output/index.html index.html
           git config user.name  "SPS Daily Bot"
           git config user.email "bot@spschile.local"
-          git add output/index.html
+          git add output/index.html index.html
           # Commit solo si hubo cambios
           git diff --staged --quiet || git commit -m "Actualización diaria $(date -u +%Y-%m-%d)"
           git push
