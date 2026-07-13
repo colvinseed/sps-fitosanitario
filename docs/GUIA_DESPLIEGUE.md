@@ -68,20 +68,59 @@ En el repositorio de GitHub:
 
 > Estos valores quedan cifrados. No aparecen en el código, ni en los registros de ejecución, ni son visibles para nadie que mire el repositorio.
 
-### 3.3 Confirmar los endpoints de vilab  ⚠ REQUIERE VERIFICACIÓN
+### 3.3 Poner los identificadores de las estaciones (pre_id)
 
-El archivo `src/vilab_extractor.py` contiene varios puntos marcados con `# >>> CONFIRMAR`. Como la estructura interna de vilab solo es visible con una sesión activa, tu equipo debe verificarlos una vez:
+El login de vilab y los endpoints ya están **confirmados y escritos** en el
+extractor. Lo único que debes rellenar una vez son los `pre_id` de las cinco
+estaciones (el identificador interno que vilab usa para cada una).
 
-1. Iniciar sesión en vilab desde un navegador.
-2. Abrir las herramientas de desarrollador (**F12 → pestaña Network / Red**).
-3. Navegar a la lista de datos de una estación y observar:
-   - La **URL de login** y los nombres de los campos usuario/contraseña.
-   - La **URL que devuelve los datos** horarios y sus parámetros (estación, fechas).
-   - El **formato de la respuesta** (JSON, CSV o tabla HTML) y los **nombres de las columnas**.
-   - Los **identificadores internos** de cada estación.
-4. Reflejar esos valores en las líneas `# >>> CONFIRMAR` del extractor.
+Para obtenerlos:
 
-> Este es el mismo trabajo que se hizo al construir el extractor v7. Si ese extractor aún funciona, se pueden copiar directamente sus valores de login, endpoints y des-acumulación.
+1. Inicia sesión en vilab e ir a la página de **Predios**.
+2. Abrir la consola (**F12 → Console**) y pegar:
+
+   ```javascript
+   (function(){
+     try{
+       var dt = jQuery('#datatable_proyectos_max').DataTable();
+       dt.page.len(5000).draw();
+       setTimeout(function(){
+         var out='';
+         dt.rows().data().toArray().forEach(function(o){
+           if(o.estacion && /San Rafael|Chocal|Placilla|Peor|Talagante/i.test(o.estacion))
+             out += '  '+o.estacion.replace(/\[.*?\]/g,'').trim()+' -> pre_id='+o.pre_id+'\n';
+         });
+         console.log(out||'no se encontraron esas estaciones');
+       }, 2000);
+     }catch(e){ console.log('error: '+e.message); }
+   })();
+   ```
+
+3. Copiar los `pre_id` que aparezcan y pegarlos en `src/vilab_extractor.py`,
+   en el diccionario `STATION_PREID` (una línea por estación).
+
+> **Para cambiar de estaciones más adelante:** edita solo ese diccionario
+> `STATION_PREID`. No hay que tocar nada más del código.
+
+### 3.3-bis Probar la extracción antes de automatizar (recomendado)
+
+Antes de confiar en la corrida automática, prueba el extractor en tu PC:
+
+```bash
+export VILAB_USER="tu_correo"       # (en Windows: set VILAB_USER=tu_correo)
+export VILAB_PASSWORD="tu_clave"
+python3 test_extractor.py
+```
+
+El script prueba el login, extrae 3 días de San Rafael y muestra los datos con
+chequeos de sanidad (rangos de temperatura y humedad plausibles). Si los valores
+son razonables, el extractor está listo. Si algo falla, el diagnóstico indica
+en qué variable o paso, para ajustarlo.
+
+> **Nota sobre `Peor es Nada`:** su `pre_id` (7515) está en un rango distinto al
+> de las otras cuatro estaciones (46xx). Verifica en esta prueba que devuelve
+> datos correctos; si viene vacía, su predio puede estar en otra campaña y habrá
+> que recapturar su `pre_id` desde la campaña correcta.
 
 ### 3.4 Activar la ejecución automática
 
@@ -138,7 +177,7 @@ La copia local es independiente de la página pública; puedes cargar todos los 
 ## 5. Mantenimiento
 
 - **Si cambian las credenciales de vilab:** actualizar los secretos en GitHub (paso 3.2). Nada más.
-- **Si vilab cambia su estructura:** revisar los puntos `# >>> CONFIRMAR` del extractor.
+- **Si cambias de estaciones:** edita el diccionario `STATION_PREID` en `src/vilab_extractor.py`.
 - **Si quieres cambiar la hora de actualización:** editar la línea `cron` en `daily.yml`.
 - **Si quieres cambiar la ventana de visualización:** editar `DISPLAY_DAYS` en `src/run_daily.py`.
 
