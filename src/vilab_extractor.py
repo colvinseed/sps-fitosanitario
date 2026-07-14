@@ -47,6 +47,37 @@ DATA_URL = f'{BASE}/index.php/predios/clima'
 # ---------------------------------------------------------------------------
 # PRE_IDS DE LAS ESTACIONES  ·  EDITABLE
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# MODELO DE DATOS DE VILAB: PROYECTO/PREDIO -> ESTACIÓN (muchos a uno)
+# ---------------------------------------------------------------------------
+# En vilab, un PROYECTO ES un PREDIO (campo de SPS Chile, identificado por su
+# pre_id). Cada proyecto/predio está AMARRADO a UNA estación Agromet/INIA. Una
+# misma estación puede tener VARIOS proyectos/predios amarrados (relación
+# muchos-a-uno): predios cercanos comparten la estación representativa.
+#
+#     Proyecto/Predio A ─┐
+#     Proyecto/Predio B ─┼──> Estación X
+#     Proyecto/Predio C ─┘
+#     Proyecto/Predio D ───> Estación Y
+#
+# El amarre proyecto->estación es VISIBLE en vilab, en la pestaña "Proyecto".
+# Al consultar el clima de un predio (pre_id), vilab devuelve los datos de su
+# estación amarrada.
+#
+# Por tanto:
+#   - STATION_PREID contiene los pre_id de PREDIO/PROYECTO (lo que consume el
+#     extractor en el POST de clima).
+#   - STATION_INFO contiene los códigos de la ESTACIÓN amarrada (referencia).
+#   NO son intercambiables.
+#
+# MANTENIMIENTO entre campañas (verificar en la pestaña "Proyecto" de vilab):
+#   (1) que los pre_id sigan siendo válidos;
+#   (2) que cada proyecto siga amarrado a la MISMA estación esperada;
+#   (3) OJO: si dos predios de SPS comparten estación, se estaría extrayendo el
+#       mismo dato dos veces (no es error, pero conviene saberlo). Por las
+#       coordenadas, las 5 estaciones de SPS parecen distintas entre sí.
+# ---------------------------------------------------------------------------
+
 # Cada estación en vilab se identifica por un pre_id (id de predio representativo).
 # Rellena estos valores con los que entrega el script de la guía (sección 3.3).
 # Para cambiar de estaciones más adelante, edita SOLO este diccionario.
@@ -62,12 +93,34 @@ STATION_PREID = {
 # temporada, estos valores pueden dejar de ser válidos y hay que recapturarlos
 # (ver docs/GUIA_DESPLIEGUE.md, sección 3.3).
 
+# ---------------------------------------------------------------------------
+# ESTACIONES AMARRADAS (lista oficial entregada por vilab, 2026-07-14)
+# ---------------------------------------------------------------------------
+# Códigos oficiales de la ESTACIÓN Agromet/INIA a la que está amarrado cada
+# predio de arriba. Todas son de la red "Agromet" (INIA). Se conservan como
+# referencia estable (el código de estación no cambia entre campañas, a
+# diferencia del pre_id) y para una eventual API oficial de INIA.
+# En la ventana de extracción de agrometeorologia.cl el formato es 'INIA-{code}'.
+STATION_INFO = {
+    'Chocalán':     {'code': 50,  'comuna': 'Melipilla',   'lat': -33.725556, 'lon': -71.209722},
+    'Talagante':    {'code': 45,  'comuna': 'Talagante',   'lat': -33.673250, 'lon': -70.921139},
+    'Placilla':     {'code': 294, 'comuna': 'Placilla',    'lat': -34.641583, 'lon': -71.135667},
+    'Peor es Nada': {'code': 774, 'comuna': 'Chimbarongo', 'lat': -34.783248, 'lon': -71.043411},
+    'San Rafael':   {'code': 94,  'comuna': 'San Rafael',  'lat': -35.303611, 'lon': -71.475833},
+}
+# NOTA: 'Peor es Nada' aparece con id interno 317 en el JSON de Agromet
+# (INIA-317 en la ventana de extracción). El 'code' 774 es el de la lista oficial
+# de vilab. Para una API/extracción directa de INIA, verificar cuál id aplica.
+
 # Tipos de variable en vilab (confirmados del v7)
 TIPO_TEMP = 'g_clima_temperatura'
 TIPO_HUM = 'g_clima_humedad'
 TIPO_PRECIP = 'g_clima_precipitacion'
 
 GRAF_HORARIO = 2   # tipo_grafico: 1=diario, 2=horario
+
+
+
 
 
 def make_session():
