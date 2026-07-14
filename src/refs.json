@@ -30,14 +30,19 @@
   "Nota: modelo de infección genérico basado en umbrales T × mojado de literatura; B. cinerea no cuenta con un modelo cuantitativo específico consensuado como BOTCAST."
  ],
  "sclero": [
-  "Clarkson, J.P., et al. (2014). A model for Sclerotinia sclerotiorum infection and disease development in lettuce, based on the effects of temperature, relative humidity and ascospore density. (PMC3988091).",
-  "Willbur, J.F., et al. (2018). Weather-based models for assessing the risk of Sclerotinia sclerotiorum apothecial presence in soybean fields. Plant Disease 102(1): 73–84.",
-  "Foster, A.J., Kora, C., McDonald, M.R. & Boland, G.R. (2011). Development and validation of a disease forecast model for Sclerotinia rot of carrot. Canadian Journal of Plant Pathology 33: 187–201.",
-  "Clarkson, J.P., et al. (2007). Ascospore release and survival in Sclerotinia sclerotiorum. — germinación carpogénica óptima 18–20 °C."
+  "Clarkson, J.P., Phelps, K., Whipps, J.M., Young, C.S., Smith, J.A. & Watling, M. (2007). Forecasting Sclerotinia Disease on Lettuce: A Predictive Model for Carpogenic Germination of Sclerotinia sclerotiorum Sclerotia. Phytopathology 97(5): 621–631.",
+  "Clarkson, J.P., et al. (2004). Forecasting Sclerotinia disease on lettuce: toward developing a prediction model for carpogenic germination of sclerotia. Phytopathology 94: 268–279.",
+  "Clarkson, S.J., Fawcett, L., Anthony, S.G. & Young, C. (2014). A model for Sclerotinia sclerotiorum infection and disease development in lettuce, based on temperature, relative humidity and ascospore density. PLoS ONE 9: e94049."
  ],
  "allii": [
   "Furuya, H., Takanashi, H., Fuji, S., Nagai, Y. & Naito, H. (2009). Modeling Infection of Spring Onion by Puccinia allii in Response to Temperature and Leaf Wetness. Phytopathology 99(8): 951–956.",
   "Duthie, J.A. (1997). Models of the response of foliar parasites to the combined effects of temperature and duration of wetness. Phytopathology 87: 1088–1095.",
   "Pacific Northwest Pest Management Handbooks — Garlic/Onion Rust (Puccinia allii): infección óptima 10–15°C, 100% HR, mínimo ~4 h de mojado foliar."
+ ],
+ "stemph": [
+  "Scicluna, J. (2025). Determining Effective Management Strategies for Stemphylium Leaf Blight of Onion. MSc Thesis, University of Guelph, Ontario, Canada.",
+  "Kooy, M., et al. (2023b). STEMcast forecasting model for Stemphylium leaf blight of onion (desarrollo del modelo específico para cebolla, Holland Marsh, Ontario).",
+  "Pitblado, R.E. (1992). The development and implementation of TOM-CAST. Ontario Ministry of Agriculture and Food. (Base de la que deriva STEMcast.)",
+  "Montesinos, E., et al. (1995). Development and evaluation of an infection model for Stemphylium vesicarium on pear based on temperature and wetness duration. Phytopathology 85: 586–592."
  ]
 }

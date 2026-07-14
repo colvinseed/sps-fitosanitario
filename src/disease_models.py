@@ -20,7 +20,7 @@ Todos los modelos salvo la esporulación del mildiú dependen de ese proxy.
 Parámetros sin recalibrar a Chile — salidas referenciales, no prescriptivas.
 
 © 2026 Winston Colvin — South Pacific Seeds Chile
-Versión 1.2 · 2026-07-13 (Puccinia allii — ecuación Furuya original)
+Versión 1.5 · 2026-07-13 (+ Stemphylium STEMcast 2.0)
 """
 
 import math
@@ -208,6 +208,47 @@ def alt_brassicae(T, wet):
 
 
 # ===========================================================================
+# STEMPHYLIUM VESICARIUM (tizón foliar de cebolla, SLB)  ·  STEMcast 2.0
+# ---------------------------------------------------------------------------
+# Valor de severidad diaria (DSV, 0-4) de STEMcast 2.0, el modelo específico
+# de Stemphylium en CEBOLLA desarrollado en Ontario. Tabla 2.3 de:
+#   Scicluna, J. (2025). Determining Effective Management Strategies for
+#   Stemphylium Leaf Blight of Onion. MSc Thesis, University of Guelph.
+# (STEMcast 2.0 deriva de TOMcast/Pitblado 1992, ajustado a S. vesicarium.)
+#
+# Matriz real (Tabla 2.3): DSV sólo se acumula entre 18 y 25°C.
+#   18-20°C:  0-14h→0 | 15-16h→1 | 17+h→2
+#   21-25°C:  0-12h→0 | 13-14h→1 | 15-16h→2 | 17-20h→3 | 21+h→4
+# Umbral de acción del ensayo: CDSV=15 (acumulado).
+#
+# SALVEDAD IMPORTANTE (de la propia tesis): STEMcast 2.0 redujo el número de
+# aplicaciones de fungicida pero NO redujo la severidad del SLB en los ensayos
+# 2023-2024. Las combinaciones exactas T×mojado óptimas para infección de
+# S. vesicarium en cebolla aún no se conocen con precisión. Por eso esta salida
+# es una ALERTA DE VENTANA CLIMÁTICA conducente, NO un predictor de severidad
+# ni una prescripción de tratamiento.
+# SALVEDAD (heridas): S. vesicarium es patógeno débil que infecta sobre todo por
+# heridas previas (trips, lesiones de mildiú/Alternaria). El modelo climático no
+# captura esa predisposición.
+# ===========================================================================
+def stemphylium_dsv(T, wet):
+    """DSV diario (0-4) de STEMcast 2.0 (Scicluna 2025, Tabla 2.3)."""
+    if T is None or wet is None or wet <= 0:
+        return 0
+    if 18 <= T <= 20:
+        if wet <= 14:   return 0
+        elif wet <= 16: return 1
+        else:           return 2
+    elif 21 <= T <= 25:
+        if wet <= 12:   return 0
+        elif wet <= 14: return 1
+        elif wet <= 16: return 2
+        elif wet <= 20: return 3
+        else:           return 4
+    return 0     # <18°C o >25°C: sin acumulación (matriz STEMcast 2.0)
+
+
+# ===========================================================================
 # BOTRYTIS SQUAMOSA (cebolla, infección)  ·  BOTCAST + Carisse 2012 (Weibull)
 # ===========================================================================
 def bot_squamosa(T, wet):
@@ -299,26 +340,88 @@ def puccinia_allii(T, wet):
 
 
 # ===========================================================================
-# SCLEROTINIA SCLEROTIORUM (índice favorabilidad)  ·  asume inóculo en suelo
+# SCLEROTINIA SCLEROTIORUM  ·  Germinación carpogénica (Clarkson et al. 2007)
+# ---------------------------------------------------------------------------
+# Modelo de producción de apotecios por germinación carpogénica de esclerocios.
+# Clarkson, Phelps, Whipps, Young, Smith & Watling (2007), Phytopathology
+# 97:621-631. Modelo de DOS FASES secuenciales, con COEFICIENTES ORIGINALES
+# (Tabla 4, isolate 13; ecuaciones 2 y 3):
+#
+#   Fase 1 — Acondicionamiento (conditioning): rc = a + b·e^(−k·T)   (ec. 2)
+#            a=0.03273, b=1000, k=1.498. Rápido en FRÍO (5-10°C, ~2 días a 5°C),
+#            lento en templado (~30 días a 15°C). Nulo ≥20°C.
+#   Fase 2 — Germinación (germination): rg = exp(d0 + d1/(T+273))     (ec. 3)
+#            d0=31.12, d1=−10138. Óptimo TEMPLADO (18-20°C, ~30-40 días),
+#            muy lento en frío (~210 días a 5°C). Nulo ≥25°C.
+#
+# El acondicionamiento debe COMPLETARSE (Σrc ≥ 1) antes de que empiece la
+# germinación (Σrg ≥ 1). Validado: reproduce los totales del paper (212 días a
+# 5°C constante; 72 días a 18°C). Requiere además suelo húmedo (proxy HR alta).
+#
+# NOTA (hospedante): calibrado en lechuga de campo (UK). Es el modelo hortícola
+# más cercano a brásicas de semilla; aun así, la extrapolación a B. oleracea es
+# aproximada (no hay modelo dedicado a oleráceas).
+# NOTA (temperatura): idealmente usa temperatura de SUELO; aquí se usa T de aire
+# como proxy (vilab no entrega T de suelo). Interpretación conservadora.
+# NOTA (invierno): en la práctica, tras un invierno completo los esclerocios ya
+# están acondicionados (Clarkson lo señala). Por eso el índice refleja sobre
+# todo el avance de la fase de germinación durante la temporada.
 # ===========================================================================
-def _sclero_conducive(Tmean_day, hr_mean_day):
-    return 1 if (12 <= Tmean_day <= 22 and hr_mean_day >= 75) else 0
+_SCL_A, _SCL_B, _SCL_K = 0.03273, 1000.0, 1.498      # ec. 2 (isolate 13)
+_SCL_D0, _SCL_D1 = 31.12, -10138.0                    # ec. 3 (isolate 13)
+_SCL_TMAX_COND = 20.0
+_SCL_TMAX_GERM = 25.0
+
+
+def _rate_conditioning(T):
+    """Tasa de acondicionamiento por día (ec. 2). Rápida en frío."""
+    if T is None or T >= _SCL_TMAX_COND:
+        return 0.0
+    return _SCL_A + _SCL_B * exp(-_SCL_K * T)
+
+
+def _rate_germination(T):
+    """Tasa de germinación por día (ec. 3, Arrhenius). Óptima en templado."""
+    if T is None or T >= _SCL_TMAX_GERM:
+        return 0.0
+    return exp(_SCL_D0 + _SCL_D1 / (T + 273.0))
 
 
 def compute_sclerotinia(daily):
     """
     daily: DataFrame indexado por fecha con columnas Tmean, HRmean.
-    Devuelve dict {fecha_str: (indice_0_100, preparacion_apotecios_0_100)}.
-    ASUME inóculo (esclerocios) presente en el suelo.
+    Devuelve dict {fecha_str: (indice_0_100, germinacion_0_100)}.
+
+    Modelo de Clarkson 2007: acumula acondicionamiento (Σrc→1) y luego
+    germinación (Σrg→1) día a día. La 'germinación' (readiness) es la fracción
+    de progreso hacia apotecios listos; el 'índice' combina esa germinación con
+    la condición de infección diaria (T e HR conducentes).
+    Suelo húmedo requerido: se exige HR alta para que el proceso avance.
     """
     d = daily.copy()
-    d['cond'] = d.apply(lambda r: _sclero_conducive(r['Tmean'], r['HRmean']), axis=1)
-    d['cond10'] = d['cond'].rolling(10, min_periods=1).sum()
+    # Tras un invierno completo los esclerocios ya están acondicionados
+    # (Clarkson 2007, Discusión): en la práctica se asume Stage 1 completo.
+    # Por eso partimos con cond_acc=1.0 y modelamos el avance de germinación.
+    cond_acc = 1.0     # acondicionamiento asumido completo tras el invierno
+    germ_acc = 0.0     # acumulador de germinación (0→1)
     out = {}
     for idx, row in d.iterrows():
-        readiness = min(1.0, row['cond10'] / 10.0)
-        infect = 1 if (12 <= row['Tmean'] <= 25 and row['HRmean'] >= 78) else 0
-        out[str(idx)] = (round(readiness * infect * 100), round(readiness * 100))
+        T = row['Tmean']
+        HR = row['HRmean']
+        moist = HR >= 75          # suelo húmedo (proxy); sin humedad no avanza
+
+        if moist and T is not None:
+            if cond_acc < 1.0:
+                cond_acc = min(1.0, cond_acc + _rate_conditioning(T))
+            # la germinación solo progresa una vez completado el acondicionamiento
+            if cond_acc >= 1.0 and germ_acc < 1.0:
+                germ_acc = min(1.0, germ_acc + _rate_germination(T))
+
+        germination = germ_acc     # 0-1: avance hacia apotecios listos
+        # Condición de infección del día (ascosporas + microclima conducente)
+        infect = 1 if (7 <= T <= 25 and HR >= 80) else 0
+        idx_val = round(germination * infect * 100)
+        out[str(idx)] = (idx_val, round(germination * 100))
     return out
 
 
@@ -349,7 +452,7 @@ def compute_all(station_dfs, window_days=None):
     Devuelve la estructura de datos lista para el artefacto:
       {'mildew': {...}, 'alternaria': {...}, 'botrytis': {...}, 'meta': {...}}
     """
-    mildew, alternaria, botrytis, roya = {}, {}, {}, {}
+    mildew, alternaria, botrytis, roya, stemph = {}, {}, {}, {}, {}
 
     for st, raw in station_dfs.items():
         if st not in STATIONS:
@@ -371,7 +474,7 @@ def compute_all(station_dfs, window_days=None):
         daily = df.groupby('date').agg(Tmean=('T', 'mean'), HRmean=('HR', 'mean'))
         scl = compute_sclerotinia(daily)
 
-        a_rows, b_rows, r_rows = [], [], []
+        a_rows, b_rows, r_rows, st_rows = [], [], [], []
         for ds in dias:
             dd = pd.to_datetime(ds).date()
             dur, Tm = wev.get(dd, (0, None))
@@ -386,6 +489,14 @@ def compute_all(station_dfs, window_days=None):
                                scl=sidx, scl_ready=sready))
             r_rows.append(dict(f=ds, wet=dur, tm=Tm,
                                allii=puccinia_allii(Tm, dur)))
+            st_rows.append(dict(f=ds, wet=dur, tm=Tm,
+                                dsv=stemphylium_dsv(Tm, dur)))
+
+        # DSV acumulado de Stemphylium (STEMcast 2.0), como TOM-CAST
+        acc = 0
+        for row in st_rows:
+            acc += row['dsv']
+            row['cum'] = acc
 
         # Recorte de ventana (para la vista diaria de N días)
         if window_days:
@@ -393,6 +504,7 @@ def compute_all(station_dfs, window_days=None):
             a_rows = a_rows[-window_days:]
             b_rows = b_rows[-window_days:]
             r_rows = r_rows[-window_days:]
+            st_rows = st_rows[-window_days:]
 
         # Resúmenes de mildiú
         strong = sum(1 for e in m_rows if e['mc'] > 4)
@@ -406,5 +518,7 @@ def compute_all(station_dfs, window_days=None):
         alternaria[st] = dict(region=cfg['region'], data=a_rows)
         botrytis[st] = dict(region=cfg['region'], data=b_rows)
         roya[st] = dict(region=cfg['region'], data=r_rows)
+        stemph[st] = dict(region=cfg['region'], data=st_rows)
 
-    return dict(mildew=mildew, alternaria=alternaria, botrytis=botrytis, roya=roya)
+    return dict(mildew=mildew, alternaria=alternaria, botrytis=botrytis,
+                roya=roya, stemph=stemph)

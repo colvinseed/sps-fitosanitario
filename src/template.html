@@ -126,6 +126,7 @@
   <button onclick="setPage(2)" data-i18n="nav_bot"></button>
   <button onclick="setPage(3)" data-i18n="nav_scl"></button>
   <button onclick="setPage(4)" data-i18n="nav_roya"></button>
+  <button onclick="setPage(5)" data-i18n="nav_stemph"></button>
 </div></nav>
 
 <div class="wrap">
@@ -242,6 +243,19 @@
     <div class="legend"><span><span class="dot" style="background:#C05621"></span><span data-i18n="roya_leg"></span></span><span><span style="width:14px;height:2px;background:#888780;display:inline-block"></span><span data-i18n="wet_leg"></span></span></div></div>
   <div class="cards"><div class="card"><div class="lbl" data-i18n="c_days_inf"></div><div class="val" style="color:#C05621" id="ra-d">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_max"></div><div class="val" id="ra-mx">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_cum"></div><div class="val" id="ra-sm">0</div></div></div>
   <div class="foot" data-i18n="roya_foot"></div>
+</div>
+
+<!-- P5 STEMPHYLIUM (STEMcast 2.0) -->
+<div class="page" id="p5">
+  <h2><span data-i18n="stemph_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
+  <p class="sub"><i>Stemphylium vesicarium</i> · <span data-i18n="stemph_sub"></span></p>
+  <div class="info" data-i18n-html="stemph_info"></div>
+  <button class="doclink" onclick="openDoc('stemph')" data-i18n="doclink"></button>
+  <div class="stations" id="se-st"></div>
+  <div class="chartbox"><div class="h"><span><span data-i18n="dsv_cum"></span> · <span id="se-lbl"></span></span><span class="r" id="se-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="se-ch"></canvas></div>
+    <div class="legend"><span><span class="dot" style="background:#8A6D1F"></span><span data-i18n="dsv_cum"></span></span><span><span class="dot" style="background:#DCC98A"></span><span data-i18n="dsv_daily"></span></span><span><span style="width:14px;height:2px;background:#A32D2D;display:inline-block"></span><span data-i18n="stemph_thr"></span></span></div></div>
+  <div class="cards"><div class="card"><div class="lbl" data-i18n="c_dsv_tot"></div><div class="val" style="color:#6E5518" id="se-t">0</div></div><div class="card"><div class="lbl" data-i18n="c_days_dsv"></div><div class="val" id="se-d">0</div></div><div class="card"><div class="lbl" data-i18n="stemph_c_thr"></div><div class="val" id="se-th" style="font-size:16px;padding-top:4px">—</div></div></div>
+  <div class="foot" data-i18n="stemph_foot"></div>
 </div>
 </div>
 </div>
@@ -378,12 +392,32 @@ function drawRoya(){
   document.getElementById('ra-sm').textContent=d.reduce((a,e)=>a+e.allii,0).toFixed(1);
   barLine('ra-ch','ra',lb,d.map(e=>e.allii),'#C05621',d.map(e=>e.wet),84,t('sev_04'),i=>{const e=d[i.dataIndex];return i.datasetIndex===0?t('sev_04')+': '+e.allii+(e.tm!=null?' · '+e.tm+'°C':''):t('wet_h')+': '+e.wet;});
 }
+function drawStemph(){
+  const S=(D.stemph&&D.stemph[sel])?D.stemph[sel]:{data:[],region:''};
+  const d=S.data,lb=d.map(e=>e.f.slice(5));
+  document.getElementById('se-lbl').textContent=sel;
+  document.getElementById('se-reg').textContent=t('region')+': '+S.region;
+  const cum=d.map(e=>e.cum);
+  document.getElementById('se-t').textContent=cum.length?cum[cum.length-1]:0;
+  document.getElementById('se-d').textContent=d.filter(e=>e.dsv>0).length;
+  const over=cum.length&&cum[cum.length-1]>=15;
+  document.getElementById('se-th').textContent=over?t('yes'):t('no');
+  dstroy('se');
+  ch.se=new Chart(document.getElementById('se-ch'),{data:{labels:lb,datasets:[
+    {type:'line',data:cum,borderColor:'#8A6D1F',backgroundColor:'rgba(138,109,31,0.08)',borderWidth:2,pointRadius:0,fill:true,yAxisID:'y',order:1,tension:0.2},
+    {type:'bar',data:d.map(e=>e.dsv),backgroundColor:'#DCC98A',yAxisID:'y2',order:2,barPercentage:0.9,categoryPercentage:0.95}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+      scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,position:'left',title:{display:true,text:t('dsv_cum'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}},y2:{min:0,max:4,position:'right',title:{display:true,text:t('dsv_daily'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{display:false}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>i.datasetIndex===0?t('dsv_cum')+': '+cum[i.dataIndex]:t('dsv_daily')+': '+d[i.dataIndex].dsv+(d[i.dataIndex].tm!=null?' · '+d[i.dataIndex].tm+'°C':'')}}}},
+    plugins:[{afterDraw:c=>{const y=c.scales.y.getPixelForValue(15),ctx=c.ctx;ctx.save();ctx.strokeStyle='#A32D2D';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(c.scales.x.left,y);ctx.lineTo(c.scales.x.right,y);ctx.stroke();ctx.restore();}}]});
+}
 function renderAll(){
   if(curPage===0){mkSt('m-st');drawMildewStack();drawMildew();}
   else if(curPage===1){const s=curSub[1];mkSt(['ap-st','ad-st','ab-st'][s]);drawAlt(s);}
   else if(curPage===2){const s=curSub[2];mkSt(['bs-st','bc-st'][s]);drawBot(s);}
   else if(curPage===3){mkSt('sc-st');drawSclero();}
   else if(curPage===4){mkSt('ra-st');drawRoya();}
+  else if(curPage===5){mkSt('se-st');drawStemph();}
 }
 applyLang();
 renderAll();

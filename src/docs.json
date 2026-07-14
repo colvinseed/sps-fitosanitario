@@ -189,35 +189,35 @@
   ]
  },
  "sclero": {
-  "titulo": "Índice de favorabilidad — Sclerotinia sclerotiorum",
+  "titulo": "Clarkson et al. 2007 — Germinación carpogénica de Sclerotinia",
   "patogeno": "Sclerotinia sclerotiorum",
-  "fase": "Índice de favorabilidad (asume inóculo en suelo)",
-  "tipo": "Índice heurístico — el más especulativo de la suite.",
-  "desc": "Moho blanco polífago. Es fundamentalmente una enfermedad de SUELO: la germinación carpogénica (formación de apotecios) requiere 30–50 días a 15–21 °C con suelo húmedo antes de liberar ascosporas. Las variables críticas (temperatura y humedad del suelo) NO son medidas por las estaciones. Este índice usa temperatura y HR del AIRE como proxy, y ASUME que hay esclerocios presentes en el suelo. Es un tamiz de condiciones potencialmente favorables, no un pronóstico de infección.",
+  "fase": "Germinación carpogénica → apotecios",
+  "tipo": "Modelo de dos fases (acondicionamiento + germinación) con coeficientes originales de Clarkson 2007.",
+  "desc": "Producción de apotecios por germinación carpogénica de esclerocios. Modelo de DOS FASES secuenciales: primero un acondicionamiento en frío (rápido a 5–10 °C), luego la germinación (óptima a 18–20 °C). Los apotecios liberan las ascosporas que inician la epidemia. Reemplaza el supuesto anterior de 'inóculo siempre listo' por el proceso real de germinación.",
   "vars": [
    [
-    "Temperatura del aire (media diaria)",
+    "Temperatura media diaria",
     "diaria",
-    "Proxy de temperatura de suelo para germinación carpogénica."
+    "Rige ambas fases: acondicionamiento (frío) y germinación (templado). Idealmente de suelo; aquí proxy de aire."
    ],
    [
-    "Humedad relativa (media diaria)",
+    "Humedad relativa media",
     "diaria",
-    "Proxy de humedad de suelo sostenida."
+    "Proxy de suelo húmedo (HR≥75 %); sin humedad el proceso no avanza. Infección exige HR≥80 %."
    ]
   ],
   "logica": [
-   "Día conducente = T aire media 12–22 °C Y HR media ≥75 %.",
-   "Preparación de apotecios = ventana móvil de 10 días de días conducentes (0–100 %).",
-   "Condición de infección diaria = T media 12–25 °C Y HR ≥78 %.",
-   "Índice (0–100) = preparación apotecios × condición infección × 100."
+   "Fase 1 — Acondicionamiento: rc = 0,03273 + 1000·e^(−1,498·T) por día (ec. 2). Se acumula hasta 1. Nulo ≥20 °C.",
+   "Fase 2 — Germinación: rg = exp(31,12 − 10138/(T+273)) por día (ec. 3). Solo tras acondicionamiento completo. Nula ≥25 °C.",
+   "Tras el invierno se asume acondicionamiento completo (Clarkson): el índice refleja el avance de germinación.",
+   "Índice (0–100) = germinación(0–1) · condición de infección diaria (7–25 °C y HR≥80 %) · 100.",
+   "Germinación(0–100) = fracción de apotecios listos."
   ],
-  "supuestos": "ASUME inóculo (esclerocios) presente en suelo. Usa aire como proxy de un proceso de suelo — el más especulativo de todos los modelos. Requeriría temperatura y humedad de suelo para ser un modelo real. Valores invernales bajos son correctos: el riesgo sube en primavera.",
+  "supuestos": "Implementa los COEFICIENTES ORIGINALES de Clarkson et al. (2007), isolate 13 (Tabla 4, ec. 2-3). Validado contra los totales del paper (212 días a 5 °C; 72 días a 18 °C). Calibrado en lechuga de campo (UK) — es el modelo hortícola más cercano a brásicas de semilla, pero la extrapolación a B. oleracea es aproximada (no hay modelo dedicado). Usa T de aire como proxy de T de suelo (vilab no da suelo). El umbral de humedad de suelo real depende del potencial hídrico, aquí simplificado con HR. Falta calibración local a Chile.",
   "refs": [
-   "Clarkson, J.P., et al. (2014). A model for Sclerotinia sclerotiorum infection and disease development in lettuce, based on the effects of temperature, relative humidity and ascospore density. (PMC3988091).",
-   "Willbur, J.F., et al. (2018). Weather-based models for assessing the risk of Sclerotinia sclerotiorum apothecial presence in soybean fields. Plant Disease 102(1): 73–84.",
-   "Foster, A.J., Kora, C., McDonald, M.R. & Boland, G.R. (2011). Development and validation of a disease forecast model for Sclerotinia rot of carrot. Canadian Journal of Plant Pathology 33: 187–201.",
-   "Clarkson, J.P., et al. (2007). Ascospore release and survival in Sclerotinia sclerotiorum. — germinación carpogénica óptima 18–20 °C."
+   "Clarkson, J.P., Phelps, K., Whipps, J.M., Young, C.S., Smith, J.A. & Watling, M. (2007). Forecasting Sclerotinia Disease on Lettuce: A Predictive Model for Carpogenic Germination of Sclerotinia sclerotiorum Sclerotia. Phytopathology 97(5): 621–631.",
+   "Clarkson, J.P., et al. (2004). Forecasting Sclerotinia disease on lettuce: toward developing a prediction model for carpogenic germination of sclerotia. Phytopathology 94: 268–279.",
+   "Clarkson, S.J., Fawcett, L., Anthony, S.G. & Young, C. (2014). A model for Sclerotinia sclerotiorum infection and disease development in lettuce, based on temperature, relative humidity and ascospore density. PLoS ONE 9: e94049."
   ]
  },
  "allii": {
@@ -250,6 +250,39 @@
    "Furuya, H., Takanashi, H., Fuji, S., Nagai, Y. & Naito, H. (2009). Modeling Infection of Spring Onion by Puccinia allii in Response to Temperature and Leaf Wetness. Phytopathology 99(8): 951–956.",
    "Duthie, J.A. (1997). Models of the response of foliar parasites to the combined effects of temperature and duration of wetness. Phytopathology 87: 1088–1095.",
    "Pacific Northwest Pest Management Handbooks — Garlic/Onion Rust (Puccinia allii)."
+  ]
+ },
+ "stemph": {
+  "titulo": "STEMcast 2.0 — Stemphylium vesicarium (tizón foliar)",
+  "patogeno": "Stemphylium vesicarium",
+  "fase": "Infección (DSV acumulado)",
+  "tipo": "STEMcast 2.0: matriz de valores de severidad diaria (DSV) T × mojado, específica para cebolla (Scicluna 2025).",
+  "desc": "Tizón foliar de la cebolla (SLB). STEMcast 2.0 es el modelo específico para cebolla desarrollado en Ontario (deriva de TOM-CAST, ajustado a S. vesicarium). Patógeno CÁLIDO-húmedo: sólo acumula DSV entre 18 y 25 °C, con mojados largos. Suele acompañar a la mancha púrpura (Alternaria porri) formando el 'complejo de mancha púrpura'.",
+  "vars": [
+   [
+    "Temperatura del aire",
+    "horaria",
+    "DSV sólo entre 18–25 °C (fuera de ese rango = 0). Óptimo cálido ~22–24 °C."
+   ],
+   [
+    "Humedad relativa",
+    "horaria",
+    "Proxy de mojado foliar (HR≥90 %). Requiere mojados largos: ≥15 h a 18–20 °C, ≥13 h a 21–25 °C."
+   ]
+  ],
+  "logica": [
+   "Matriz STEMcast 2.0 (Tabla 2.3, Scicluna 2025):",
+   "18–20 °C: 0–14 h→0 | 15–16 h→1 | 17+ h→2.",
+   "21–25 °C: 0–12 h→0 | 13–14 h→1 | 15–16 h→2 | 17–20 h→3 | 21+ h→4.",
+   "<18 °C o >25 °C: sin acumulación (STEMcast 2.0 elimina DSV bajo 18 °C).",
+   "Los DSV diarios se acumulan (CDSV); el umbral de acción del ensayo fue 15."
+  ],
+  "supuestos": "Implementa la matriz REAL de STEMcast 2.0 (Scicluna 2025, Tabla 2.3), el modelo más específico para Stemphylium en cebolla. SALVEDAD CLAVE: en los ensayos de campo (2023-2024) STEMcast 2.0 redujo las aplicaciones de fungicida pero NO la severidad del SLB; las combinaciones T×mojado óptimas para infección en cebolla aún no se conocen con precisión. Por ello esta salida es una ALERTA DE VENTANA CLIMÁTICA conducente, no un predictor de severidad ni una prescripción. S. vesicarium es patógeno débil que infecta sobre todo por heridas previas (trips, lesiones de mildiú/Alternaria): factor no modelado. Falta calibración local a Chile.",
+  "refs": [
+   "Scicluna, J. (2025). Determining Effective Management Strategies for Stemphylium Leaf Blight of Onion. MSc Thesis, University of Guelph, Ontario, Canada.",
+   "Kooy, M., et al. (2023b). STEMcast forecasting model for Stemphylium leaf blight of onion (desarrollo del modelo específico para cebolla, Holland Marsh, Ontario).",
+   "Pitblado, R.E. (1992). The development and implementation of TOM-CAST. Ontario Ministry of Agriculture and Food. (Base de la que deriva STEMcast.)",
+   "Montesinos, E., et al. (1995). Development and evaluation of an infection model for Stemphylium vesicarium on pear based on temperature and wetness duration. Phytopathology 85: 586–592."
   ]
  }
 }

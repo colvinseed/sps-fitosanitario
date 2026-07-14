@@ -157,7 +157,7 @@ def fetch_station(session, station, start, end):
     return df
 
 
-def extract_all(days=10):
+def extract_all(days=37):
     """
     Extrae las estaciones definidas en STATION_PREID para los últimos `days` días.
     Devuelve dict {estacion: DataFrame(Date,T,P,HR)}.
@@ -174,7 +174,7 @@ def extract_all(days=10):
 
 def main():
     ap = argparse.ArgumentParser(description='Extractor vilab -> Excel')
-    ap.add_argument('--days', type=int, default=10)
+    ap.add_argument('--days', type=int, default=37)
     ap.add_argument('--out', default='output/clima.xlsx')
     args = ap.parse_args()
 

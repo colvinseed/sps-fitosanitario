@@ -28,8 +28,13 @@ from disease_models import compute_all       # noqa: E402
 from build_artifact import build             # noqa: E402
 
 # Ventana de visualización (días) y colchón de extracción
+# DISPLAY_DAYS: días mostrados en la vista. FETCH_DAYS: días extraídos de vilab.
+# El colchón extra (FETCH_DAYS - DISPLAY_DAYS = 30 días) garantiza que los
+# modelos acumulativos —Sclerotinia usa una ventana móvil de 10 días de días
+# conducentes— tengan su historia completa hacia atrás en TODOS los días
+# visibles, no solo en los más recientes.
 DISPLAY_DAYS = 7
-FETCH_DAYS = 10
+FETCH_DAYS = 37
 
 
 def main():

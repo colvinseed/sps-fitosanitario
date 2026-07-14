@@ -304,20 +304,20 @@
   "<i>Sclerotinia sclerotiorum</i> · white mold · May–July 2026"
  ],
  "scl_note": [
-  "<b>⚠ Modelo especulativo — el más aproximado de todos.</b> Sclerotinia es una enfermedad de <b>suelo</b>: la germinación de apotecios requiere 30–50 días a 15–21&nbsp;°C con suelo húmedo, variables que sus estaciones <b>no miden</b>. Este índice usa temperatura y HR del <b>aire</b> como proxy, y <b>asume que hay inóculo (esclerocios) presente en el suelo.</b> Es un tamiz de \"condiciones potencialmente favorables\", no un pronóstico de infección. Requeriría datos de temperatura y humedad de suelo para ser un modelo real.",
-  "<b>⚠ Speculative model — the most approximate of all.</b> Sclerotinia is a <b>soil</b> disease: apothecial germination requires 30–50 days at 15–21&nbsp;°C with moist soil, variables your stations <b>do not measure</b>. This index uses <b>air</b> temperature and RH as a proxy, and <b>assumes inoculum (sclerotia) is present in the soil.</b> It is a \"potentially favorable conditions\" filter, not an infection forecast. It would require soil temperature and moisture data to be a real model."
+  "<b>Modelo de germinación carpogénica de Clarkson et al. (2007).</b> Modela el proceso real en dos fases: acondicionamiento en frío de los esclerocios y luego germinación (apotecios) en clima templado. Tras el invierno se asume acondicionamiento completo. Calibrado en lechuga; extrapolación aproximada a brásicas.",
+  "<b>Carpogenic germination model of Clarkson et al. (2007).</b> Models the real two-phase process: cold conditioning of sclerotia and then germination (apothecia) in mild weather. After winter, conditioning is assumed complete. Calibrated on lettuce; approximate extrapolation to brassicas."
  ],
  "scl_idx": [
-  "Índice de favorabilidad diario",
-  "Daily favorability index"
+  "Índice de infección diario",
+  "Daily infection index"
  ],
  "scl_leg_idx": [
-  "índice favorabilidad (0–100)",
-  "favorability index (0–100)"
+  "índice de infección (0–100)",
+  "infection index (0–100)"
  ],
  "scl_leg_ready": [
-  "preparación apotecios (0–100)",
-  "apothecial readiness (0–100)"
+  "germinación apotecios (0–100)",
+  "apothecia germination (0–100)"
  ],
  "scl_c_days": [
   "Días índice>30",
@@ -328,16 +328,16 @@
   "Max index"
  ],
  "scl_c_rm": [
-  "Preparación máx",
-  "Max readiness"
+  "Germinación máx",
+  "Max germination"
  ],
  "scl_read": [
-  "<b>Lectura:</b> valores bajos en invierno son <b>correctos</b> — la germinación carpogénica prefiere 15–21&nbsp;°C, poco frecuentes en pleno invierno frío. El riesgo de Sclerotinia sube en primavera, cuando el suelo se calienta y hay humedad. Un índice invernal bajo no significa ausencia de esclerocios, solo condiciones desfavorables para su germinación ahora.",
-  "<b>Reading:</b> low winter values are <b>correct</b> — carpogenic germination prefers 15–21&nbsp;°C, infrequent in mid-winter cold. Sclerotinia risk rises in spring, when the soil warms and moisture is present. A low winter index does not mean absence of sclerotia, only unfavorable conditions for germination now."
+  "<b>Lectura:</b> la germinación (apotecios) avanza progresivamente conforme sube la temperatura hacia 18–20 °C. El índice de infección combina esa germinación con la condición diaria (7–25 °C, HR≥80 %). Valores bajos en pleno invierno frío son esperables; el riesgo crece hacia la primavera.",
+  "<b>Reading:</b> germination (apothecia) advances progressively as temperature rises toward 18–20 °C. The infection index combines that germination with the daily condition (7–25 °C, RH≥80%). Low values in cold midwinter are expected; risk grows toward spring."
  ],
  "scl_foot": [
-  "Índice de favorabilidad basado en ventana móvil de 10 días de condiciones conducentes a germinación carpogénica (T aire 12–22&nbsp;°C, HR≥75%) combinada con condición diaria de infección (T 12–25&nbsp;°C, HR≥78%). <b>Asume inóculo presente en suelo.</b> Proxy de aire para proceso de suelo — el más especulativo de la suite. Referencial, no prescriptivo.",
-  "Favorability index based on a 10-day moving window of conditions conducive to carpogenic germination (air T 12–22&nbsp;°C, RH≥75%) combined with a daily infection condition (T 12–25&nbsp;°C, RH≥78%). <b>Assumes inoculum present in soil.</b> Air proxy for a soil process — the most speculative in the suite. Referential, not prescriptive."
+  "Germinación carpogénica de dos fases (Clarkson et al. 2007, coeficientes originales). Salida referencial, sin recalibrar a Chile. Usa T de aire como proxy de T de suelo.",
+  "Two-phase carpogenic germination (Clarkson et al. 2007, original coefficients). Referential output, not recalibrated to Chile. Uses air T as a proxy for soil T."
  ],
  "tt_pos": [
   "positivo",
@@ -374,5 +374,33 @@
  "roya_foot": [
   "Modelo de Furuya et al. (2009), estructura de Duthie (Weibull). Salida referencial 0–4, sin recalibrar a Chile. La roya depende además de inóculo transportado por viento (el índice estima la ventana favorable, no la llegada del inóculo). Ajuste original en cebollín; en cebolla la extrapolación es conservadora.",
   "Furuya et al. (2009) model, Duthie (Weibull) structure. Referential 0–4 output, not recalibrated to Chile. Rust also depends on wind-borne inoculum (the index estimates the favorable window, not inoculum arrival). Original fit on bunching onion; extrapolation to onion is conservative."
+ ],
+ "nav_stemph": [
+  "Stemphylium",
+  "Stemphylium"
+ ],
+ "stemph_title": [
+  "Tizón foliar — Stemphylium vesicarium",
+  "Leaf blight — Stemphylium vesicarium"
+ ],
+ "stemph_sub": [
+  "STEMcast 2.0 · DSV acumulado (Scicluna 2025)",
+  "STEMcast 2.0 · cumulative DSV (Scicluna 2025)"
+ ],
+ "stemph_info": [
+  "Tizón foliar de la cebolla (SLB). Patógeno <b>cálido-húmedo</b>: STEMcast 2.0 sólo acumula DSV entre 18–25 °C con mojados largos (≥13–15 h). Suele acompañar a la mancha púrpura (Alternaria porri). <b>Alerta de ventana climática</b>, no predictor de severidad (ver documentación).",
+  "Stemphylium leaf blight of onion (SLB). A <b>warm-wet</b> pathogen: STEMcast 2.0 only accumulates DSV between 18–25 °C with long wetness (≥13–15 h). Often accompanies purple blotch (Alternaria porri). <b>Climatic-window alert</b>, not a severity predictor (see documentation)."
+ ],
+ "stemph_thr": [
+  "Umbral 15",
+  "Threshold 15"
+ ],
+ "stemph_c_thr": [
+  "¿DSV≥15?",
+  "DSV≥15?"
+ ],
+ "stemph_foot": [
+  "STEMcast 2.0 (Scicluna 2025, tabla real). En ensayos 2023-2024 redujo aplicaciones pero no la severidad del SLB: úsese como alerta de ventana conducente, no como prescripción. No modela infección por heridas. Sin recalibrar a Chile.",
+  "STEMcast 2.0 (Scicluna 2025, real table). In 2023-2024 trials it reduced applications but not SLB severity: use as a conducive-window alert, not a prescription. Wound infection not modelled. Not recalibrated to Chile."
  ]
 }

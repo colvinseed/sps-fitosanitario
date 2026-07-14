@@ -189,35 +189,35 @@
   ]
  },
  "sclero": {
-  "titulo": "Favorability index — Sclerotinia sclerotiorum",
+  "titulo": "Clarkson et al. 2007 — Carpogenic germination of Sclerotinia",
   "patogeno": "Sclerotinia sclerotiorum",
-  "fase": "Favorability index (assumes soil inoculum)",
-  "tipo": "Heuristic index — the most speculative in the suite.",
-  "desc": "Polyphagous white mold. It is fundamentally a SOIL disease: carpogenic germination (apothecial formation) requires 30–50 days at 15–21 °C with moist soil before releasing ascospores. The critical variables (soil temperature and moisture) are NOT measured by the stations. This index uses AIR temperature and RH as a proxy, and ASSUMES sclerotia are present in the soil. It is a filter of potentially favorable conditions, not an infection forecast.",
+  "fase": "Carpogenic germination → apothecia",
+  "tipo": "Two-phase model (conditioning + germination) with the original coefficients from Clarkson 2007.",
+  "desc": "Apothecium production by carpogenic germination of sclerotia. A TWO-PHASE sequential model: first cold conditioning (fast at 5–10 °C), then germination (optimum 18–20 °C). Apothecia release the ascospores that start the epidemic. Replaces the previous 'inoculum always ready' assumption with the real germination process.",
   "vars": [
    [
-    "Air temperature (daily mean)",
+    "Daily mean temperature",
     "daily",
-    "Proxy for soil temperature driving carpogenic germination."
+    "Drives both phases: conditioning (cold) and germination (mild). Ideally soil; air proxy here."
    ],
    [
-    "Relative humidity (daily mean)",
+    "Mean relative humidity",
     "daily",
-    "Proxy for sustained soil moisture."
+    "Moist-soil proxy (RH≥75%); without moisture the process stalls. Infection needs RH≥80%."
    ]
   ],
   "logica": [
-   "Conducive day = mean air T 12–22 °C AND mean RH ≥75%.",
-   "Apothecial readiness = 10-day moving window of conducive days (0–100%).",
-   "Daily infection condition = mean T 12–25 °C AND RH ≥78%.",
-   "Index (0–100) = apothecial readiness × infection condition × 100."
+   "Phase 1 — Conditioning: rc = 0.03273 + 1000·e^(−1.498·T) per day (eq. 2). Accumulates to 1. Nil ≥20 °C.",
+   "Phase 2 — Germination: rg = exp(31.12 − 10138/(T+273)) per day (eq. 3). Only after conditioning is complete. Nil ≥25 °C.",
+   "After winter, conditioning is assumed complete (Clarkson): the index reflects germination progress.",
+   "Index (0–100) = germination(0–1) · daily infection condition (7–25 °C and RH≥80%) · 100.",
+   "Germination(0–100) = fraction of apothecia ready."
   ],
-  "supuestos": "ASSUMES inoculum (sclerotia) present in the soil. Uses air as a proxy for a soil process — the most speculative of all models. Would require soil temperature and moisture to be a real model. Low winter values are correct: risk rises in spring.",
+  "supuestos": "Implements the ORIGINAL coefficients from Clarkson et al. (2007), isolate 13 (Table 4, eq. 2-3). Validated against the paper's totals (212 days at 5 °C; 72 days at 18 °C). Calibrated on field lettuce (UK) — the closest horticultural model to seed brassicas, but extrapolation to B. oleracea is approximate (no dedicated model exists). Uses air T as a proxy for soil T (vilab has no soil T). The real soil-moisture threshold depends on water potential, simplified here with RH. Local calibration to Chile still pending.",
   "refs": [
-   "Clarkson, J.P., et al. (2014). A model for Sclerotinia sclerotiorum infection and disease development in lettuce, based on the effects of temperature, relative humidity and ascospore density. (PMC3988091).",
-   "Willbur, J.F., et al. (2018). Weather-based models for assessing the risk of Sclerotinia sclerotiorum apothecial presence in soybean fields. Plant Disease 102(1): 73–84.",
-   "Foster, A.J., Kora, C., McDonald, M.R. & Boland, G.R. (2011). Development and validation of a disease forecast model for Sclerotinia rot of carrot. Canadian Journal of Plant Pathology 33: 187–201.",
-   "Clarkson, J.P., et al. (2007). Ascospore release and survival in Sclerotinia sclerotiorum. — germinación carpogénica óptima 18–20 °C."
+   "Clarkson, J.P., Phelps, K., Whipps, J.M., Young, C.S., Smith, J.A. & Watling, M. (2007). Forecasting Sclerotinia Disease on Lettuce: A Predictive Model for Carpogenic Germination of Sclerotinia sclerotiorum Sclerotia. Phytopathology 97(5): 621–631.",
+   "Clarkson, J.P., et al. (2004). Forecasting Sclerotinia disease on lettuce: toward developing a prediction model for carpogenic germination of sclerotia. Phytopathology 94: 268–279.",
+   "Clarkson, S.J., Fawcett, L., Anthony, S.G. & Young, C. (2014). A model for Sclerotinia sclerotiorum infection and disease development in lettuce, based on temperature, relative humidity and ascospore density. PLoS ONE 9: e94049."
   ]
  },
  "allii": {
@@ -250,6 +250,39 @@
    "Furuya, H., Takanashi, H., Fuji, S., Nagai, Y. & Naito, H. (2009). Modeling Infection of Spring Onion by Puccinia allii in Response to Temperature and Leaf Wetness. Phytopathology 99(8): 951–956.",
    "Duthie, J.A. (1997). Models of the response of foliar parasites to the combined effects of temperature and duration of wetness. Phytopathology 87: 1088–1095.",
    "Pacific Northwest Pest Management Handbooks — Garlic/Onion Rust (Puccinia allii)."
+  ]
+ },
+ "stemph": {
+  "titulo": "STEMcast 2.0 — Stemphylium vesicarium (leaf blight)",
+  "patogeno": "Stemphylium vesicarium",
+  "fase": "Infection (accumulated DSV)",
+  "tipo": "STEMcast 2.0: daily severity-value (DSV) matrix of T × wetness, onion-specific (Scicluna 2025).",
+  "desc": "Stemphylium leaf blight of onion (SLB). STEMcast 2.0 is the onion-specific model developed in Ontario (derived from TOM-CAST, tuned to S. vesicarium). A WARM-wet pathogen: DSV only accumulate between 18 and 25 °C, with long wetness. Often accompanies purple blotch (Alternaria porri) as the 'purple blotch complex'.",
+  "vars": [
+   [
+    "Air temperature",
+    "hourly",
+    "DSV only 18–25 °C (0 outside). Warm optimum ~22–24 °C."
+   ],
+   [
+    "Relative humidity",
+    "hourly",
+    "Leaf-wetness proxy (RH≥90%). Requires long wetness: ≥15 h at 18–20 °C, ≥13 h at 21–25 °C."
+   ]
+  ],
+  "logica": [
+   "STEMcast 2.0 matrix (Table 2.3, Scicluna 2025):",
+   "18–20 °C: 0–14 h→0 | 15–16 h→1 | 17+ h→2.",
+   "21–25 °C: 0–12 h→0 | 13–14 h→1 | 15–16 h→2 | 17–20 h→3 | 21+ h→4.",
+   "<18 °C or >25 °C: no accumulation (STEMcast 2.0 removes DSV below 18 °C).",
+   "Daily DSVs accumulate (CDSV); the trial action threshold was 15."
+  ],
+  "supuestos": "Implements the REAL STEMcast 2.0 matrix (Scicluna 2025, Table 2.3), the most onion-specific Stemphylium model. KEY CAVEAT: in field trials (2023-2024) STEMcast 2.0 reduced fungicide applications but did NOT reduce SLB severity; the optimum T×wetness combinations for onion infection are not yet precisely known. Hence this output is a CONDUCIVE-WINDOW ALERT, not a severity predictor or a prescription. S. vesicarium is a weak pathogen that mostly infects through prior wounds (thrips, mildew/Alternaria lesions): a factor not modelled. Local calibration to Chile still pending.",
+  "refs": [
+   "Scicluna, J. (2025). Determining Effective Management Strategies for Stemphylium Leaf Blight of Onion. MSc Thesis, University of Guelph, Ontario, Canada.",
+   "Kooy, M., et al. (2023b). STEMcast forecasting model for Stemphylium leaf blight of onion (desarrollo del modelo específico para cebolla, Holland Marsh, Ontario).",
+   "Pitblado, R.E. (1992). The development and implementation of TOM-CAST. Ontario Ministry of Agriculture and Food. (Base de la que deriva STEMcast.)",
+   "Montesinos, E., et al. (1995). Development and evaluation of an infection model for Stemphylium vesicarium on pear based on temperature and wetness duration. Phytopathology 85: 586–592."
   ]
  }
 }

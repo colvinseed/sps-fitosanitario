@@ -42,6 +42,7 @@ def build(results, out_path=None, window_label=None):
         alternaria=results['alternaria'],
         botrytis=results['botrytis'],
         roya=results.get('roya', {}),
+        stemph=results.get('stemph', {}),
         docs_es=docs_es,
         docs_en=docs_en,
         ui=ui,
