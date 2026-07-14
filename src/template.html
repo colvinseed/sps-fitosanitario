@@ -36,6 +36,23 @@
   .stations{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
   .stations button{flex:1;min-width:88px;background:#fff;border:1px solid var(--hair);padding:8px 6px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--ink)}
   .stations button.active{border:2px solid var(--blue);background:var(--lblue)}
+  /* Buscador de estaciones (para redes grandes, 47 estaciones) */
+  .stsearch{margin-bottom:18px}
+  .stsearch__bar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .stsearch__input{flex:1;padding:9px 12px;border:1px solid var(--hair);border-radius:8px;font-size:13px;color:var(--ink)}
+  .stsearch__input:focus{outline:none;border-color:var(--blue)}
+  .stsearch__cur{font-size:12px;color:var(--blue);font-weight:600;white-space:nowrap}
+  .stsearch__results{display:flex;flex-wrap:wrap;gap:6px;max-height:0;overflow:hidden;transition:max-height .2s}
+  .stsearch__results.open{max-height:320px;overflow-y:auto;margin-bottom:4px}
+  .stsearch__item{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--hair);padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px;color:var(--ink)}
+  .stsearch__item:hover{background:var(--lblue)}
+  .stsearch__item.active{border:2px solid var(--blue);background:var(--lblue)}
+  .stsearch__item .reg{color:#8a97a8;font-size:10.5px}
+  .stsearch__star{cursor:pointer;font-size:14px;line-height:1;color:#d0d7e2;user-select:none}
+  .stsearch__star.on{color:#e6b400}
+  .stsearch__favs{display:flex;flex-wrap:wrap;gap:6px}
+  .stsearch__favlbl{font-size:11px;color:#8a97a8;width:100%;margin-bottom:2px}
+  .stsearch__empty{font-size:12px;color:#8a97a8;padding:4px 0}
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
   .card{background:#fff;border-radius:10px;padding:12px;border:1px solid var(--hair)}
   .card .lbl{font-size:12px;color:var(--mut);margin-bottom:4px}
@@ -262,8 +279,17 @@
 
 <script>
 const D = /*__DATA__*/{}/*__END__*/;
-const ORDER=['Chocalán','Talagante','Placilla','Peor es Nada','San Rafael'];
-const ch={};let sel='San Rafael';let curPage=0,curSub=[0,0,0,0];let LANG='es';let curDoc=null;
+// ORDER se deriva de las estaciones presentes en los datos (soporta 5 o 47).
+// Se toma la unión de estaciones de todas las categorías, preservando el orden
+// de inserción del backend (norte a sur).
+const ORDER=(function(){
+  const seen=[],set=new Set();
+  ['mildew','alternaria','botrytis','roya','stemph'].forEach(cat=>{
+    if(D[cat])Object.keys(D[cat]).forEach(n=>{if(!set.has(n)){set.add(n);seen.push(n);}});
+  });
+  return seen.length?seen:['Chocalán','Talagante','Placilla','Peor es Nada','San Rafael'];
+})();
+const ch={};let sel=(function(){try{const f=JSON.parse(localStorage.getItem('sps_fav_stations')||'[]');if(Array.isArray(f)&&f.length&&ORDER.includes(f[0]))return f[0];}catch(e){}return ORDER[0]||'San Rafael';})();let curPage=0,curSub=[0,0,0,0];let LANG='es';let curDoc=null;
 const U=D.ui;
 function t(k){return U[k]?U[k][LANG==='es'?0:1]:k;}
 
@@ -277,8 +303,89 @@ function applyLang(){
 }
 function setLang(l){LANG=l;applyLang();if(curDoc)openDoc(curDoc);else renderAll();}
 
-function mkSt(id){const c=document.getElementById(id);if(!c)return;c.innerHTML='';
-  ORDER.forEach(n=>{const b=document.createElement('button');b.textContent=n;if(n===sel)b.className='active';b.onclick=()=>{sel=n;renderAll();};c.appendChild(b);});}
+// --- Selector de estaciones: buscador + favoritas (localStorage) ---
+// Con redes grandes (47 estaciones) no se muestran 47 botones: se muestran las
+// FAVORITAS del usuario (guardadas en su navegador) + un buscador por nombre.
+function getFavs(){
+  try{const f=JSON.parse(localStorage.getItem('sps_fav_stations')||'[]');
+    return Array.isArray(f)?f:[];}catch(e){return [];}
+}
+function setFavs(arr){
+  try{localStorage.setItem('sps_fav_stations',JSON.stringify(arr));}catch(e){}
+}
+function toggleFav(name){
+  let f=getFavs();
+  if(f.includes(name))f=f.filter(x=>x!==name);else f.push(name);
+  setFavs(f);renderAll();
+}
+function stRegion(n){
+  // región desde los datos ya cargados (cualquier categoría sirve)
+  for(const cat of ['mildew','alternaria','botrytis','roya','stemph']){
+    if(D[cat]&&D[cat][n]&&D[cat][n].region)return D[cat][n].region;
+  }
+  return '';
+}
+function mkSt(id){
+  const c=document.getElementById(id);if(!c)return;
+  const all=ORDER.slice();
+  const favs=getFavs().filter(n=>all.includes(n));
+  // Si la estación seleccionada no está, usar la primera favorita o la primera
+  if(!all.includes(sel))sel=favs[0]||all[0];
+  c.innerHTML='';
+  const wrap=document.createElement('div');wrap.className='stsearch';
+
+  // Barra: input + estación actual
+  const bar=document.createElement('div');bar.className='stsearch__bar';
+  const inp=document.createElement('input');inp.className='stsearch__input';
+  inp.type='text';inp.placeholder=t('st_search_ph');inp.value='';
+  const cur=document.createElement('span');cur.className='stsearch__cur';
+  cur.textContent='📍 '+sel;
+  bar.appendChild(inp);bar.appendChild(cur);wrap.appendChild(bar);
+
+  // Resultados de búsqueda (ocultos hasta escribir)
+  const res=document.createElement('div');res.className='stsearch__results';
+  wrap.appendChild(res);
+
+  // Favoritas (siempre visibles)
+  const favBox=document.createElement('div');favBox.className='stsearch__favs';
+  function renderFavs(){
+    favBox.innerHTML='';
+    const lbl=document.createElement('div');lbl.className='stsearch__favlbl';
+    lbl.textContent=t('st_favs');favBox.appendChild(lbl);
+    if(!favs.length){
+      const e=document.createElement('div');e.className='stsearch__empty';
+      e.textContent=t('st_nofav');favBox.appendChild(e);return;
+    }
+    favs.forEach(n=>favBox.appendChild(mkItem(n)));
+  }
+  function mkItem(n){
+    const it=document.createElement('div');
+    it.className='stsearch__item'+(n===sel?' active':'');
+    const star=document.createElement('span');
+    star.className='stsearch__star'+(getFavs().includes(n)?' on':'');
+    star.textContent=getFavs().includes(n)?'★':'☆';
+    star.onclick=(e)=>{e.stopPropagation();toggleFav(n);};
+    const txt=document.createElement('span');
+    const reg=stRegion(n);
+    txt.innerHTML=n+(reg?' <span class="reg">'+reg+'</span>':'');
+    it.appendChild(star);it.appendChild(txt);
+    it.onclick=()=>{sel=n;renderAll();};
+    return it;
+  }
+  inp.oninput=()=>{
+    const q=inp.value.trim().toLowerCase();
+    res.innerHTML='';
+    if(!q){res.classList.remove('open');return;}
+    const hits=all.filter(n=>n.toLowerCase().includes(q)||stRegion(n).toLowerCase().includes(q));
+    if(!hits.length){res.classList.add('open');
+      const e=document.createElement('div');e.className='stsearch__empty';
+      e.textContent=t('st_noresult');res.appendChild(e);return;}
+    hits.slice(0,40).forEach(n=>res.appendChild(mkItem(n)));
+    res.classList.add('open');
+  };
+  renderFavs();wrap.appendChild(favBox);
+  c.appendChild(wrap);
+}
 function setPage(p){curPage=p;document.querySelectorAll('nav.pages button').forEach((b,i)=>b.classList.toggle('active',i===p));document.querySelectorAll('.page').forEach((pg,i)=>pg.classList.toggle('active',i===p));renderAll();}
 function setSub(page,s){curSub[page]=s;const pg=document.getElementById('p'+page);pg.querySelectorAll('.subnav button').forEach((b,i)=>b.classList.toggle('active',i===s));pg.querySelectorAll('.subpage').forEach((sp,i)=>sp.classList.toggle('active',i===s));renderAll();}
 const dstroy=k=>{if(ch[k]){ch[k].destroy();delete ch[k];}};
@@ -317,12 +424,16 @@ function barLine(cid,key,labels,bars,barCol,line,lineMax,yTitle,tip){
 }
 
 function drawMildewStack(){
-  const s=ORDER.map(x=>D.mildew[x].strong),m=ORDER.map(x=>D.mildew[x].mod),l=ORDER.map(x=>D.mildew[x].low),n=ORDER.map(x=>D.mildew[x].nulo);
+  // Mostrar solo las estaciones FAVORITAS. Si no hay favoritas, mostrar la
+  // estación seleccionada actualmente (para no dejar el gráfico vacío).
+  let subset=getFavs().filter(x=>ORDER.includes(x)&&D.mildew[x]);
+  if(!subset.length)subset=(D.mildew[sel]?[sel]:ORDER.slice(0,5));
+  const s=subset.map(x=>D.mildew[x].strong),m=subset.map(x=>D.mildew[x].mod),l=subset.map(x=>D.mildew[x].low),n=subset.map(x=>D.mildew[x].nulo);
   dstroy('stack');
   ch.stack=new Chart(document.getElementById('m-stack'),{type:'bar',
-    data:{labels:ORDER,datasets:[{label:t('lvl_strong'),data:s,backgroundColor:'#854F0B',stack:'s'},{label:t('lvl_mod'),data:m,backgroundColor:'#BA7517',stack:'s'},{label:t('lvl_low'),data:l,backgroundColor:'#EF9F27',stack:'s'},{label:t('lvl_null'),data:n,backgroundColor:'#D3D1C7',stack:'s'}]},
+    data:{labels:subset,datasets:[{label:t('lvl_strong'),data:s,backgroundColor:'#854F0B',stack:'s'},{label:t('lvl_mod'),data:m,backgroundColor:'#BA7517',stack:'s'},{label:t('lvl_low'),data:l,backgroundColor:'#EF9F27',stack:'s'},{label:t('lvl_null'),data:n,backgroundColor:'#D3D1C7',stack:'s'}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,
-      scales:{x:{stacked:true,max:(D.mildew[ORDER[0]]?D.mildew[ORDER[0]].data.length:7),grid:{color:'#eef2f7'},ticks:{font:{size:10},color:'#5a6b80'}},y:{stacked:true,grid:{display:false},ticks:{font:{size:11},color:'#1a2b40'}}},
+      scales:{x:{stacked:true,max:(D.mildew[subset[0]]?D.mildew[subset[0]].data.length:7),grid:{color:'#eef2f7'},ticks:{font:{size:10},color:'#5a6b80'}},y:{stacked:true,grid:{display:false},ticks:{font:{size:11},color:'#1a2b40'}}},
       plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,font:{size:11},color:'#5a6b80',padding:8}}}}});
 }
 function drawMildew(){

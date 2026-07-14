@@ -44,8 +44,8 @@
   "MILIONCAST2 vs DOWNCAST · May–July 2026"
  ],
  "m_stack": [
-  "Reparto de noches por intensidad (norte → sur)",
-  "Nights by intensity level (north → south)"
+  "Reparto de noches por intensidad — mis estaciones",
+  "Nights by intensity level — my stations"
  ],
  "m_intensity": [
   "Intensidad diaria",
@@ -402,5 +402,21 @@
  "stemph_foot": [
   "STEMcast 2.0 (Scicluna 2025, tabla real). En ensayos 2023-2024 redujo aplicaciones pero no la severidad del SLB: úsese como alerta de ventana conducente, no como prescripción. No modela infección por heridas. Sin recalibrar a Chile.",
   "STEMcast 2.0 (Scicluna 2025, real table). In 2023-2024 trials it reduced applications but not SLB severity: use as a conducive-window alert, not a prescription. Wound infection not modelled. Not recalibrated to Chile."
+ ],
+ "st_search_ph": [
+  "Buscar estación o región...",
+  "Search station or region..."
+ ],
+ "st_favs": [
+  "★ Mis estaciones",
+  "★ My stations"
+ ],
+ "st_nofav": [
+  "Busca una estación y marca ☆ para guardarla aquí.",
+  "Search a station and tap ☆ to save it here."
+ ],
+ "st_noresult": [
+  "Sin resultados.",
+  "No results."
  ]
 }

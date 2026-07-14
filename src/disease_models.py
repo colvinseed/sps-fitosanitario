@@ -445,19 +445,30 @@ def prepare_station_df(df):
     return df
 
 
-def compute_all(station_dfs, window_days=None):
+def compute_all(station_dfs, window_days=None, station_meta=None):
     """
     station_dfs: dict {nombre_estacion: DataFrame crudo (Date,T,P,HR)}.
     window_days: si se indica, recorta la salida a los últimos N días.
-    Devuelve la estructura de datos lista para el artefacto:
-      {'mildew': {...}, 'alternaria': {...}, 'botrytis': {...}, 'meta': {...}}
+    station_meta: dict opcional {nombre: {region, lat, lon}} para estaciones no
+      predefinidas en STATIONS. Si una estación no está ni en STATIONS ni en
+      station_meta, se usan coordenadas por defecto de Chile central (el cálculo
+      astronómico del mildiú es poco sensible a pequeñas diferencias de lat/lon).
+    Devuelve la estructura de datos lista para el artefacto.
     """
     mildew, alternaria, botrytis, roya, stemph = {}, {}, {}, {}, {}
+    station_meta = station_meta or {}
 
     for st, raw in station_dfs.items():
-        if st not in STATIONS:
-            continue
-        cfg = STATIONS[st]
+        # Resolver metadata: STATIONS predefinidas > station_meta > default
+        if st in STATIONS:
+            cfg = STATIONS[st]
+        elif st in station_meta:
+            m = station_meta[st]
+            cfg = dict(region=m.get('region', ''),
+                       lat=m.get('lat', -35.0), lon=m.get('lon', -71.3))
+        else:
+            # Estación sin metadata: usar Chile central como aproximación.
+            cfg = dict(region='', lat=-35.0, lon=-71.3)
         df = prepare_station_df(raw)
         wev = wet_events_by_day(df)
 
