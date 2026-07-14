@@ -224,7 +224,7 @@
   "titulo": "Furuya et al. 2009 — Puccinia allii (rust)",
   "patogeno": "Puccinia allii",
   "fase": "Infection",
-  "tipo": "Duthie's equation (modified Weibull) of temperature × leaf wetness.",
+  "tipo": "Duthie's integrated equation (modified Weibull) with the original coefficients from Furuya et al. 2009.",
   "desc": "Rust of garlic, onion and bunching onion. Furuya et al. (2009) modeled relative urediniospore infection on spring onion (Allium fistulosum) with Duthie's equation (modified Weibull form, R²=0.9369). A COOL-climate pathogen: optimum 10–15 °C and 100% RH; at 25 °C few uredinia form despite prolonged wetness. Pressure is therefore higher in autumn-winter and toward the southern end of the gradient.",
   "vars": [
    [
@@ -239,12 +239,13 @@
    ]
   ],
   "logica": [
-   "Thermal factor (asymmetric): optimum 10–15 °C (=1.0), declining toward 18–20 °C, very low 20–23 °C, near nil 23–26 °C; at 5 °C long wetness is required.",
-   "Wetness factor: <6 h marginal (0.15); 6–10 h (0.45); rapid rise 10–15 h (0.80); plateau 15–27 h (1.0).",
-   "Cold penalty (<8 °C) with short wetness (<10 h): ×0.5.",
-   "Index (0–4) = thermal factor · wetness factor · 4."
+   "Integrated equation f(w,t) = f(t)·{1−exp[−(0.0877·w)^2.8087]} (wetness factor, eq. 4).",
+   "Duthie logistic f(t) with F=21.0547, G=1.0814 and time-varying H: H(w)=1.0196·e^(0.1231·w) (eq. 5, 6, 8).",
+   "Minimum wetness 5.25 h for any infection (none at 4 h).",
+   "Thermal optimum ~17.8 °C; collapses above 20 °C, near nil at 25 °C.",
+   "Index (0–4) = RI(0–1) · 4."
   ],
-  "supuestos": "Wetness via RH≥90% proxy. The exact Duthie coefficients (a,b,c) from Furuya's paper are access-restricted: this implementation reproduces the published STRUCTURE and ranges piecewise, not the original coefficients — a referential output to be field-calibrated. Rust also depends on wind-borne long-distance inoculum (the model estimates the favorable window, not inoculum arrival). Original fit on bunching onion; on onion (A. cepa, more resistant) the extrapolation is conservative.",
+  "supuestos": "Wetness via RH≥90% proxy. Implements the ORIGINAL coefficients from Furuya et al. (2009) (Tables 2-3, eq. 4-6 and 8, time-varying H version, R²=0.9501) — not an approximation. Rust also depends on wind-borne long-distance inoculum (the model estimates the favorable window, not inoculum arrival). Original fit on bunching onion (A. fistulosum); on onion (A. cepa, more resistant) the extrapolation is conservative. Local calibration to Chile still pending.",
   "refs": [
    "Furuya, H., Takanashi, H., Fuji, S., Nagai, Y. & Naito, H. (2009). Modeling Infection of Spring Onion by Puccinia allii in Response to Temperature and Leaf Wetness. Phytopathology 99(8): 951–956.",
    "Duthie, J.A. (1997). Models of the response of foliar parasites to the combined effects of temperature and duration of wetness. Phytopathology 87: 1088–1095.",

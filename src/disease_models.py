@@ -20,7 +20,7 @@ Todos los modelos salvo la esporulación del mildiú dependen de ese proxy.
 Parámetros sin recalibrar a Chile — salidas referenciales, no prescriptivas.
 
 © 2026 Winston Colvin — South Pacific Seeds Chile
-Versión 1.1 · 2026-07-13 (+ Puccinia allii)
+Versión 1.2 · 2026-07-13 (Puccinia allii — ecuación Furuya original)
 """
 
 import math
@@ -245,58 +245,57 @@ def bot_cinerea(T, wet):
 # ---------------------------------------------------------------------------
 # Modelo de infección por urediniosporas en función de temperatura y mojado
 # foliar. Furuya, Takanashi, Fuji, Nagai & Naito (2009), Phytopathology
-# 99:951-956, ajustaron la infección relativa con la ecuación de Duthie (forma
-# modificada de Weibull), R²=0.9369.
+# 99:951-956. Ecuación INTEGRADA de Duthie (forma modificada de Weibull),
+# implementada con los COEFICIENTES ORIGINALES del paper (Tablas 2 y 3 + ec.
+# 4-6 y 8). Versión con parámetro H variable en el tiempo (R²=0.9501).
 #
-# Parámetros epidemiológicos CONFIRMADOS por la literatura (Furuya 2009; PNW
-# Handbook), usados aquí para definir los factores:
-#   - Infección entre 6.5 y 27 h de mojado (10-25°C); requiere >=10 h a 5°C.
-#   - Aumento rápido de infección entre 6.5 y 15 h de mojado (10-20°C).
-#   - Óptimo en clima FRESCO 10-15°C; a 25°C casi no hay infección pese al mojado.
-#   - Mínimo ~4-6 h de mojado para cualquier infección (PNW; Morinaka).
+# Ecuaciones (paper):
+#   f(w,t) = f(t) · {1 − exp[−(B·(w−C))^D]}                    (ec. 4)
+#   f(t)   = E' · exp[(t−F)·G/(H+1)] / {1 + exp[(t−F)·G]}      (ec. 5)
+#   E'     = E · [(H+1)/H] · H^(1/(H+1))                       (ec. 6)
+#   H(w)   = 1.0196 · e^(0.1231·w)   (H variable en el tiempo) (ec. 8)
+# Coeficientes: B=0.0877, C=0, D=2.8087 (Tabla 2, 15°C);
+#               E=0.9602, F=21.0547, G=1.0814 (Tabla 3, 27 h).
+# Mínimo de mojado para infección: 5.25 h (preliminar del paper; a 4 h no hay).
+# Temperatura óptima media: 17.76 °C. Colapsa >20 °C, casi nula a 25 °C.
 #
-# ADVERTENCIA (calibración): los coeficientes numéricos exactos (a,b,c) del
-# ajuste de Duthie de Furuya están en el paper original (acceso restringido).
-# Esta implementación reproduce la ESTRUCTURA y los rangos publicados mediante
-# factores por tramos (igual estilo que los demás modelos de esta suite), NO
-# los coeficientes originales. Salida referencial 0-4, a calibrar en terreno.
-#
-# ADVERTENCIA (inóculo): la roya tiene fuerte componente de inóculo transportado
-# por viento a larga distancia; este modelo estima la VENTANA de infección
-# favorable, no la llegada del inóculo (análogo a la nota de Sclerotinia).
-#
-# ADVERTENCIA (hospedante): el ajuste original es en cebollín (Allium fistulosum).
-# En cebolla (A. cepa) el mismo patógeno infecta, pero A. cepa es más resistente;
-# la extrapolación es razonable pero conservadora.
+# NOTA (hospedante): ajuste original en cebollín (Allium fistulosum). En cebolla
+# (A. cepa, más resistente) la extrapolación es razonable pero conservadora.
+# NOTA (inóculo): la roya depende de inóculo transportado por viento a larga
+# distancia; el modelo estima la VENTANA de infección favorable, no la llegada
+# del inóculo (análogo a la nota de Sclerotinia).
+# NOTA (mojado): se usa el proxy HR>=WET_HR como duración de mojado foliar.
 # ===========================================================================
+def _furuya_RI(T, w):
+    """Infección relativa (RI, 0-1) según la ecuación integrada de Furuya 2009."""
+    C = 0.0
+    if w <= C or w < 5.25:      # sin infección bajo el mínimo de 5.25 h
+        return 0.0
+    F, G = 21.0547, 1.0814
+    H = 1.0196 * exp(0.1231 * w)               # ec. 8 (H variable en el tiempo)
+    E = 0.9602
+    Ep = E * ((H + 1) / H) * (H ** (1.0 / (H + 1)))   # ec. 6
+    ft = Ep * exp(((T - F) * G) / (H + 1)) / (1.0 + exp((T - F) * G))  # ec. 5
+    B, D = 0.0877, 2.8087
+    fw = 1.0 - exp(-((B * (w - C)) ** D))      # ec. 4 (factor de mojado)
+    return max(0.0, ft * fw)
+
+
 def puccinia_allii(T, wet):
     """
     Índice de infección de roya (Puccinia allii) 0-4.
     T   : temperatura media del período de mojado (°C)
     wet : duración de mojado foliar (h, proxy HR>=WET_HR)
-    Patógeno de clima fresco: óptimo 10-15°C, colapsa >=25°C.
+    Basado en la ecuación integrada de Furuya et al. (2009) con H(w).
+    Salida = RI(0-1) · 4, coherente con la escala de los demás modelos.
     """
-    if T is None or wet < 4 or T < 3 or T > 26:
+    if T is None or wet is None:
         return 0.0
-    # Factor de temperatura (asimétrico, óptimo fresco 10-15°C; cae fuerte >20°C)
-    if 10 <= T <= 15:            tf = 1.0     # óptimo confirmado
-    elif 15 < T <= 18:           tf = 0.8
-    elif 8 <= T < 10:            tf = 0.7
-    elif 18 < T <= 20:           tf = 0.55
-    elif 5 <= T < 8:             tf = 0.4
-    elif 20 < T <= 23:           tf = 0.30    # infección escasa acercándose al límite cálido
-    elif 3 <= T < 5:             tf = 0.20    # a 5°C requiere >=10 h de mojado
-    else:                        tf = 0.10    # 23-26°C: casi nula (a 25°C casi no hay uredinias)
-    # Factor de mojado foliar (aumento rápido 6.5-15 h; requiere >=6 h para subir)
-    if wet < 6:      wf = 0.15               # mínimo marginal
-    elif wet < 10:   wf = 0.45               # entra el rango de infección
-    elif wet < 15:   wf = 0.80               # ascenso rápido documentado
-    elif wet < 27:   wf = 1.0                # meseta hasta ~27 h
-    else:            wf = 1.0
-    # A <8°C, la infección real exige mojados largos: penaliza mojado corto en frío
-    if T < 8 and wet < 10:
-        wf *= 0.5
-    return round(tf * wf * 4, 1)
+    try:
+        ri = _furuya_RI(float(T), float(wet))
+    except (ValueError, OverflowError):
+        return 0.0
+    return round(ri * 4, 1)
 
 
 # ===========================================================================

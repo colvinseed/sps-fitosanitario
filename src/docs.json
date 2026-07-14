@@ -224,7 +224,7 @@
   "titulo": "Furuya et al. 2009 — Puccinia allii (roya)",
   "patogeno": "Puccinia allii",
   "fase": "Infección",
-  "tipo": "Ecuación de Duthie (Weibull modificada) de temperatura × mojado foliar.",
+  "tipo": "Ecuación integrada de Duthie (Weibull modificada) con coeficientes originales de Furuya et al. 2009.",
   "desc": "Roya del ajo, cebolla y cebollín. Furuya et al. (2009) modelaron la infección relativa por urediniosporas en cebollín (Allium fistulosum) con la ecuación de Duthie (forma modificada de Weibull, R²=0,9369). Patógeno de clima FRESCO: óptimo 10–15 °C y 100 % HR; a 25 °C casi no se forman uredinias pese al mojado prolongado. Por ello la presión es mayor en otoño-invierno y hacia el sur del gradiente.",
   "vars": [
    [
@@ -239,12 +239,13 @@
    ]
   ],
   "logica": [
-   "Factor térmico (asimétrico): óptimo 10–15 °C (=1,0), decrece hacia 18–20 °C, muy bajo 20–23 °C, casi nulo 23–26 °C; a 5 °C exige mojados largos.",
-   "Factor mojado: <6 h marginal (0,15); 6–10 h (0,45); ascenso rápido 10–15 h (0,80); meseta 15–27 h (1,0).",
-   "Penalización en frío (<8 °C) con mojado corto (<10 h): ×0,5.",
-   "Índice (0–4) = factor térmico · factor mojado · 4."
+   "Ecuación integrada f(w,t) = f(t)·{1−exp[−(0,0877·w)^2,8087]} (factor de mojado, ec. 4).",
+   "f(t) logístico de Duthie con F=21,0547, G=1,0814 y H variable: H(w)=1,0196·e^(0,1231·w) (ec. 5, 6, 8).",
+   "Mínimo de mojado 5,25 h para que exista infección (a 4 h no hay).",
+   "Óptimo térmico ~17,8 °C; colapsa sobre 20 °C, casi nula a 25 °C.",
+   "Índice (0–4) = RI(0–1) · 4."
   ],
-  "supuestos": "Mojado por proxy de HR≥90 %. Los coeficientes exactos (a,b,c) de Duthie del paper de Furuya tienen acceso restringido: esta implementación reproduce la ESTRUCTURA y los rangos publicados por tramos, no los coeficientes originales — salida referencial a calibrar en terreno. La roya depende además de inóculo transportado por viento a larga distancia (el modelo estima la ventana favorable, no la llegada del inóculo). Ajuste original en cebollín; en cebolla (A. cepa, más resistente) la extrapolación es conservadora.",
+  "supuestos": "Mojado por proxy de HR≥90 %. Implementa los COEFICIENTES ORIGINALES de Furuya et al. (2009) (Tablas 2 y 3, ec. 4-6 y 8, versión con H variable, R²=0,9501) — no una aproximación. La roya depende además de inóculo transportado por viento a larga distancia (el modelo estima la ventana favorable, no la llegada del inóculo). Ajuste original en cebollín (A. fistulosum); en cebolla (A. cepa, más resistente) la extrapolación es conservadora. Falta calibración local a Chile.",
   "refs": [
    "Furuya, H., Takanashi, H., Fuji, S., Nagai, Y. & Naito, H. (2009). Modeling Infection of Spring Onion by Puccinia allii in Response to Temperature and Leaf Wetness. Phytopathology 99(8): 951–956.",
    "Duthie, J.A. (1997). Models of the response of foliar parasites to the combined effects of temperature and duration of wetness. Phytopathology 87: 1088–1095.",
