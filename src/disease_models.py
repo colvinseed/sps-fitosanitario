@@ -20,7 +20,7 @@ Todos los modelos salvo la esporulación del mildiú dependen de ese proxy.
 Parámetros sin recalibrar a Chile — salidas referenciales, no prescriptivas.
 
 © 2026 Winston Colvin — South Pacific Seeds Chile
-Versión 1.5 · 2026-07-13 (+ Stemphylium STEMcast 2.0)
+Versión 1.7 · 2026-07-14 (Sclerotinia: variantes superficie/-10cm/aire)
 """
 
 import math
@@ -361,8 +361,12 @@ def puccinia_allii(T, wet):
 # NOTA (hospedante): calibrado en lechuga de campo (UK). Es el modelo hortícola
 # más cercano a brásicas de semilla; aun así, la extrapolación a B. oleracea es
 # aproximada (no hay modelo dedicado a oleráceas).
-# NOTA (temperatura): idealmente usa temperatura de SUELO; aquí se usa T de aire
-# como proxy (vilab no entrega T de suelo). Interpretación conservadora.
+# NOTA (temperatura): el acondicionamiento y la germinación carpogénica ocurren
+# en el SUELO. Si la estación entrega temperatura de suelo (TS10, -10 cm de
+# Agromet), el modelo la usa para esas tasas (fisiológicamente correcto). Si no,
+# cae a T de aire como proxy conservador. La ventana de infección aérea sigue
+# usando T de aire. -10 cm se prefiere sobre la superficie por ser más estable
+# (la superficie tiene extremos día/noche que introducen ruido).
 # NOTA (invierno): en la práctica, tras un invierno completo los esclerocios ya
 # están acondicionados (Clarkson lo señala). Por eso el índice refleja sobre
 # todo el avance de la fase de germinación durante la temporada.
@@ -387,42 +391,62 @@ def _rate_germination(T):
     return exp(_SCL_D0 + _SCL_D1 / (T + 273.0))
 
 
-def compute_sclerotinia(daily):
+def _sclerotinia_una_variante(d, col_suelo):
     """
-    daily: DataFrame indexado por fecha con columnas Tmean, HRmean.
+    Corre el modelo de Clarkson usando la columna de temperatura indicada
+    (col_suelo: 'Tsoil0' superficie, 'Tsoil10' -10cm, o None para usar aire).
     Devuelve dict {fecha_str: (indice_0_100, germinacion_0_100)}.
-
-    Modelo de Clarkson 2007: acumula acondicionamiento (Σrc→1) y luego
-    germinación (Σrg→1) día a día. La 'germinación' (readiness) es la fracción
-    de progreso hacia apotecios listos; el 'índice' combina esa germinación con
-    la condición de infección diaria (T e HR conducentes).
-    Suelo húmedo requerido: se exige HR alta para que el proceso avance.
     """
-    d = daily.copy()
-    # Tras un invierno completo los esclerocios ya están acondicionados
-    # (Clarkson 2007, Discusión): en la práctica se asume Stage 1 completo.
-    # Por eso partimos con cond_acc=1.0 y modelamos el avance de germinación.
+    has_col = col_suelo is not None and col_suelo in d.columns
     cond_acc = 1.0     # acondicionamiento asumido completo tras el invierno
-    germ_acc = 0.0     # acumulador de germinación (0→1)
+    germ_acc = 0.0
     out = {}
     for idx, row in d.iterrows():
-        T = row['Tmean']
+        T = row['Tmean']              # T aire (ventana de infección aérea)
         HR = row['HRmean']
-        moist = HR >= 75          # suelo húmedo (proxy); sin humedad no avanza
+        # Temperatura que gobierna los procesos EN EL SUELO
+        Tsoil = row[col_suelo] if has_col else None
+        if Tsoil is None or (isinstance(Tsoil, float) and Tsoil != Tsoil):
+            Tsoil = T                 # respaldo: aire si falta el dato de suelo
+        moist = HR >= 75
 
-        if moist and T is not None:
+        if moist and Tsoil is not None:
             if cond_acc < 1.0:
-                cond_acc = min(1.0, cond_acc + _rate_conditioning(T))
-            # la germinación solo progresa una vez completado el acondicionamiento
+                cond_acc = min(1.0, cond_acc + _rate_conditioning(Tsoil))
             if cond_acc >= 1.0 and germ_acc < 1.0:
-                germ_acc = min(1.0, germ_acc + _rate_germination(T))
+                germ_acc = min(1.0, germ_acc + _rate_germination(Tsoil))
 
-        germination = germ_acc     # 0-1: avance hacia apotecios listos
-        # Condición de infección del día (ascosporas + microclima conducente)
-        infect = 1 if (7 <= T <= 25 and HR >= 80) else 0
+        germination = germ_acc
+        infect = 1 if (T is not None and 7 <= T <= 25 and HR >= 80) else 0
         idx_val = round(germination * infect * 100)
         out[str(idx)] = (idx_val, round(germination * 100))
     return out
+
+
+def compute_sclerotinia(daily):
+    """
+    daily: DataFrame indexado por fecha con columnas Tmean, HRmean y,
+      opcionalmente, Tsoil0 (superficie, TS00) y/o Tsoil10 (-10 cm, TS10).
+    Devuelve dict con las variantes disponibles:
+      {'sup': {fecha: (idx, germ)},   # superficie (TS00) si está
+       's10': {fecha: (idx, germ)},   # -10 cm (TS10) si está
+       'aire':{fecha: (idx, germ)}}   # aire (siempre, respaldo/comparación)
+
+    Las dos fases del ciclo de Clarkson (acondicionamiento en frío y germinación
+    carpogénica) ocurren en el SUELO. Se ofrecen ambas profundidades para
+    comparar sensibilidad: la SUPERFICIE (TS00) es donde germinan los esclerocios
+    pero es más ruidosa (extremos día/noche); -10 cm (TS10) es más estable. La
+    ventana de infección de las ascosporas usa T de aire (proceso aéreo).
+    """
+    d = daily.copy()
+    res = {}
+    if 'Tsoil0' in d.columns:
+        res['sup'] = _sclerotinia_una_variante(d, 'Tsoil0')
+    if 'Tsoil10' in d.columns:
+        res['s10'] = _sclerotinia_una_variante(d, 'Tsoil10')
+    # Aire siempre disponible: respaldo y término de comparación
+    res['aire'] = _sclerotinia_una_variante(d, None)
+    return res
 
 
 # ===========================================================================
@@ -482,7 +506,15 @@ def compute_all(station_dfs, window_days=None, station_meta=None):
             m_rows.append(dict(f=ds, dc=1 if dc.get(ds) else 0, mc=ls, tm=tm, wh=wh))
 
         # --- Alternaria + Botrytis (por evento de mojado diario) ---
-        daily = df.groupby('date').agg(Tmean=('T', 'mean'), HRmean=('HR', 'mean'))
+        # Si la estación trae temperatura de suelo (Tsoil, TS10 de Agromet),
+        # se agrega al 'daily' para que Sclerotinia la use.
+        if 'Tsoil' in df.columns:
+            daily = df.groupby('date').agg(Tmean=('T', 'mean'),
+                                           HRmean=('HR', 'mean'),
+                                           Tsoil=('Tsoil', 'mean'))
+        else:
+            daily = df.groupby('date').agg(Tmean=('T', 'mean'),
+                                           HRmean=('HR', 'mean'))
         scl = compute_sclerotinia(daily)
 
         a_rows, b_rows, r_rows, st_rows = [], [], [], []
@@ -493,11 +525,24 @@ def compute_all(station_dfs, window_days=None, station_meta=None):
                                porri=alt_porri(Tm, dur),
                                dauci=alt_dauci_dsv(Tm, dur),
                                bras=alt_brassicae(Tm, dur)))
-            sidx, sready = scl.get(ds, (0, 0))
+            # Sclerotinia: variantes por profundidad de suelo (sup / -10cm / aire)
+            sc_sup = scl.get('sup', {}).get(ds, (0, 0))
+            sc_s10 = scl.get('s10', {}).get(ds, (0, 0))
+            sc_air = scl.get('aire', {}).get(ds, (0, 0))
+            # Preferida para el índice principal: -10cm > superficie > aire
+            if 's10' in scl:
+                sidx, sready = sc_s10
+            elif 'sup' in scl:
+                sidx, sready = sc_sup
+            else:
+                sidx, sready = sc_air
             b_rows.append(dict(f=ds, wet=dur, tm=Tm,
                                squa=bot_squamosa(Tm, dur),
                                cin=bot_cinerea(Tm, dur),
-                               scl=sidx, scl_ready=sready))
+                               scl=sidx, scl_ready=sready,
+                               scl_sup=sc_sup[0], scl_sup_r=sc_sup[1],
+                               scl_s10=sc_s10[0], scl_s10_r=sc_s10[1],
+                               scl_air=sc_air[0], scl_air_r=sc_air[1]))
             r_rows.append(dict(f=ds, wet=dur, tm=Tm,
                                allii=puccinia_allii(Tm, dur)))
             st_rows.append(dict(f=ds, wet=dur, tm=Tm,

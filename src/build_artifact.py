@@ -28,9 +28,11 @@ def _load_json(name):
         return json.load(f)
 
 
-def build(results, out_path=None, window_label=None):
+def build(results, out_path=None, window_label=None, tablero=None, name2id=None):
     """
     results: salida de compute_all(..., window_days=7).
+    tablero: dict opcional del extractor agromet_tablero.py (condiciones actuales).
+    name2id: dict opcional {nombre: id_agromet} para cruzar favoritas con tablero.
     Escribe el HTML final y devuelve su ruta.
     """
     ui = _load_json('ui.json')
@@ -56,6 +58,21 @@ def build(results, out_path=None, window_label=None):
     start = template.index('/*__DATA__*/')
     end = template.index('/*__END__*/') + len('/*__END__*/')
     html = template[:start] + data_json + template[end:]
+
+    # Inyectar datos del tablero de condiciones actuales (página de inicio)
+    tablero = tablero or {'timestamp': None, 'estaciones': {}}
+    tbl_json = json.dumps(tablero, ensure_ascii=False, separators=(',', ':'))
+    if '/*__TABLERO__*/' in html:
+        s = html.index('/*__TABLERO__*/')
+        e = html.index('/*__ENDTBL__*/') + len('/*__ENDTBL__*/')
+        html = html[:s] + tbl_json + html[e:]
+
+    # Inyectar mapa nombre->id (cruce favoritas <-> datos del tablero)
+    n2i_json = json.dumps(name2id or {}, ensure_ascii=False, separators=(',', ':'))
+    if '/*__NAME2ID__*/' in html:
+        s = html.index('/*__NAME2ID__*/')
+        e = html.index('/*__ENDN2I__*/') + len('/*__ENDN2I__*/')
+        html = html[:s] + n2i_json + html[e:]
 
     # Inyectar fecha de actualización (hora local de Chile)
     updated = datetime.now().strftime('%Y-%m-%d %H:%M')

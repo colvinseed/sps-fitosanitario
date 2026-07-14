@@ -31,6 +31,25 @@ from datetime import datetime
 import requests
 
 BASE = 'https://agrometeorologia.cl/'
+
+# Las 47 estaciones de interés de SPS Chile. El JSON del mapa identifica cada
+# estación por 'id' (numérico) MÁS 'source' (inia/ext): dos estaciones pueden
+# compartir número si una es INIA y otra externa (p.ej. id 100 es La Florida/EXT
+# y también San Antonio de Naltahua/INIA). Por eso la clave de cruce es
+# "source:id" y no solo el número.
+def _clave_agromet(idp):
+    """De 'INIA-317' -> 'inia:317'; de 'EXT-156' -> 'ext:156'."""
+    pref, num = idp.split('-', 1)
+    fuente = 'inia' if pref.upper() == 'INIA' else 'ext'
+    return f'{fuente}:{num}'
+
+try:
+    from agromet_extractor import AGROMET_ID
+    # nombre -> clave 'source:id'
+    ESTACIONES_SPS = {nombre: _clave_agromet(idp)
+                      for nombre, idp in AGROMET_ID.items()}
+except Exception:
+    ESTACIONES_SPS = {}
 _HEADERS = {
     'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                    'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -107,42 +126,77 @@ def condiciones_estacion(est):
     }
 
 
+def _clave_estacion(est):
+    """Clave 'source:id' de una estación del JSON del mapa."""
+    src = (est.get('source') or '').lower()
+    fuente = 'inia' if src == 'inia' else 'ext'
+    return f"{fuente}:{est.get('id')}"
+
+
 def tablero(ids_interes=None, session=None):
     """
-    Devuelve un dict {id_agromet: condiciones} para las estaciones pedidas.
-    ids_interes: iterable de ids (str o int, ej '317' o 317). Si es None,
-      devuelve todas las estaciones con datos.
-    Incluye una marca de tiempo de la extracción.
+    Devuelve un dict {clave: condiciones} para las estaciones pedidas, donde
+    clave = 'source:id' (p.ej. 'inia:317', 'ext:156'). Esto evita colisiones
+    entre estaciones INIA y externas que comparten número.
+    ids_interes: iterable de claves 'source:id'. Si es None, usa las 47
+      estaciones de SPS Chile. Para todas, pasar 'ALL'.
+    Incluye marca de tiempo y el mapa nombre->clave.
     """
     data = bajar_json_mapa(session)
     if data is None:
-        return {'timestamp': None, 'estaciones': {}}
-    ids = set(str(i) for i in ids_interes) if ids_interes else None
+        return {'timestamp': None, 'estaciones': {}, 'name2id': {}}
+    if ids_interes == 'ALL':
+        claves = None
+        name2id = {}
+    elif ids_interes:
+        claves = set(str(i) for i in ids_interes)
+        name2id = {}
+    else:
+        claves = set(ESTACIONES_SPS.values())
+        name2id = dict(ESTACIONES_SPS)
     out = {}
     for est in data:
-        eid = str(est.get('id'))
-        if ids is not None and eid not in ids:
+        clave = _clave_estacion(est)
+        if claves is not None and clave not in claves:
             continue
         cond = condiciones_estacion(est)
         if cond:
-            out[eid] = cond
+            out[clave] = cond
     return {
         'timestamp': datetime.now().isoformat(timespec='minutes'),
         'estaciones': out,
+        'name2id': name2id,
     }
 
 
 if __name__ == '__main__':
     import argparse
     ap = argparse.ArgumentParser(description='Tablero de condiciones Agromet')
-    ap.add_argument('--ids', nargs='*', help='ids Agromet (ej 317 156 992)')
+    ap.add_argument('--ids', nargs='*',
+                    help="claves 'source:id' (ej inia:317 ext:156) o números sueltos")
+    ap.add_argument('--all', action='store_true',
+                    help='traer todas las estaciones de la red (no solo las 47 SPS)')
     ap.add_argument('--out', default='output/condiciones.json')
     args = ap.parse_args()
-    res = tablero(args.ids)
+
+    if args.all:
+        pedido = 'ALL'
+    elif args.ids:
+        # Permitir números sueltos: se prueban ambas fuentes (inia/ext)
+        pedido = []
+        for x in args.ids:
+            if ':' in x:
+                pedido.append(x)
+            else:
+                pedido += [f'inia:{x}', f'ext:{x}']
+    else:
+        pedido = None    # por defecto: las 47 estaciones de SPS Chile
+
+    res = tablero(pedido)
     if res['estaciones']:
         print(f"Extraídas {len(res['estaciones'])} estaciones @ {res['timestamp']}\n")
-        for eid, c in res['estaciones'].items():
-            print(f"  [{eid}] {c['nombre']} ({c['comuna']}): "
+        for clave, c in res['estaciones'].items():
+            print(f"  [{clave}] {c['nombre']} ({c['comuna']}): "
                   f"{c['t_min']}–{c['t_max']}°C, HR {c['hr']}%, "
                   f"lluvia {c['lluvia_24h']}mm, viento {c['viento']} km/h "
                   f"[{c['vigencia']}, {c['estado']}]")

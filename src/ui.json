@@ -418,5 +418,69 @@
  "st_noresult": [
   "Sin resultados.",
   "No results."
+ ],
+ "scl_v_s10": [
+  "Suelo −10 cm",
+  "Soil −10 cm"
+ ],
+ "scl_v_sup": [
+  "Superficie",
+  "Surface"
+ ],
+ "scl_v_air": [
+  "Aire",
+  "Air"
+ ],
+ "nav_inicio": [
+  "Inicio",
+  "Home"
+ ],
+ "tbl_title": [
+  "Condiciones actuales",
+  "Current conditions"
+ ],
+ "tbl_source": [
+  "Red Agromet (INIA)",
+  "Agromet network (INIA)"
+ ],
+ "tbl_updated": [
+  "actualizado",
+  "updated"
+ ],
+ "tbl_nodata": [
+  "sin datos aún — corre el extractor del tablero",
+  "no data yet — run the dashboard extractor"
+ ],
+ "tbl_mine": [
+  "★ Mis estaciones",
+  "★ My stations"
+ ],
+ "tbl_empty": [
+  "Busca una estación arriba y marca ☆ para agregarla al tablero.",
+  "Search a station above and tap ☆ to add it."
+ ],
+ "tbl_min": [
+  "mín",
+  "min"
+ ],
+ "tbl_gust": [
+  "ráf.",
+  "gust"
+ ],
+ "tbl_online": [
+  "en línea",
+  "online"
+ ],
+ "tbl_ayer": [
+  "dato de ayer",
+  "yesterday"
+ ],
+ "tbl_remove": [
+  "Quitar",
+  "Remove"
+ ],
+ "tbl_foot": [
+  "Condiciones del día vía red Agromet · se actualiza cada hora · © 2026 Winston Colvin — South Pacific Seeds Chile",
+  "Daily conditions via Agromet network · updated hourly · © 2026 Winston Colvin — South Pacific Seeds Chile"
  ]
 }

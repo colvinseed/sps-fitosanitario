@@ -118,8 +118,11 @@ AGROMET_ID = {
     'Adolfo Matthei (Osorno)':    'EXT-76',
 }
 
-# Variables a pedir (las que consume el motor de enfermedades)
-VARIABLES = ('TA_AVG', 'HR_AVG', 'PP_SUM')
+# Variables a pedir (las que consume el motor de enfermedades).
+# TS00_AVG = temperatura de suelo en SUPERFICIE (0 cm); TS10_AVG = a -10 cm.
+# Ambas alimentan las dos variantes del modelo de Sclerotinia (la germinación
+# carpogénica de esclerocios ocurre en la capa superficial del suelo).
+VARIABLES = ('TA_AVG', 'HR_AVG', 'PP_SUM', 'TS00_AVG', 'TS10_AVG')
 
 _HEADERS = {
     'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -207,22 +210,50 @@ def parse_csv(texto):
     out['Date'] = pd.to_datetime(df[cols[0]], format='%d-%m-%Y %H:%M', errors='coerce')
 
     # Mapear por nombre de columna (robusto ante orden de variables)
-    def find_col(keyword):
+    def find_col(keyword, exclude=None):
         for c in cols[1:]:
-            if keyword.lower() in c.lower() and 'de datos' not in c.lower():
+            cl = c.lower()
+            if 'de datos' in cl:
+                continue
+            if keyword.lower() in cl and (exclude is None or exclude.lower() not in cl):
                 return c
         return None
 
-    c_t = find_col('Temperatura')
+    # Temperatura de AIRE: contiene 'temperatura' pero NO 'suelo'
+    c_t = find_col('Temperatura', exclude='suelo')
     c_hr = find_col('Humedad')
     c_pp = find_col('Precipita')
+    # Temperaturas de SUELO: superficie (0 cm) y -10 cm. En el CSV de Agromet
+    # ambas dicen 'Temperatura de suelo'; se distinguen por la profundidad en el
+    # nombre de la columna (0 / superficie vs 10). Se detectan de forma robusta.
+    c_ts0 = None    # superficie (TS00)
+    c_ts10 = None   # -10 cm (TS10)
+    for c in cols[1:]:
+        cl = c.lower()
+        if 'de datos' in cl:
+            continue
+        if 'temperatura' in cl and 'suelo' in cl:
+            # distinguir por profundidad indicada en el encabezado
+            if '10' in cl:
+                c_ts10 = c
+            elif ('0' in cl or 'superf' in cl):
+                c_ts0 = c
+            elif c_ts0 is None:
+                c_ts0 = c    # primera de suelo sin marca clara -> superficie
 
     out['T'] = pd.to_numeric(df[c_t], errors='coerce') if c_t else pd.NA
     out['HR'] = pd.to_numeric(df[c_hr], errors='coerce') if c_hr else pd.NA
     out['P'] = pd.to_numeric(df[c_pp], errors='coerce') if c_pp else 0.0
+    if c_ts0:
+        out['Tsoil0'] = pd.to_numeric(df[c_ts0], errors='coerce')   # superficie
+    if c_ts10:
+        out['Tsoil10'] = pd.to_numeric(df[c_ts10], errors='coerce')  # -10 cm
 
     out = out.dropna(subset=['Date']).sort_values('Date').reset_index(drop=True)
-    return out[['Date', 'T', 'P', 'HR']]
+    cols_out = ['Date', 'T', 'P', 'HR']
+    if c_ts0:  cols_out.append('Tsoil0')
+    if c_ts10: cols_out.append('Tsoil10')
+    return out[cols_out]
 
 
 def fetch_station(estacion_id, desde, hasta, **kw):

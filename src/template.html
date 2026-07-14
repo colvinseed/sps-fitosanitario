@@ -53,6 +53,35 @@
   .stsearch__favs{display:flex;flex-wrap:wrap;gap:6px}
   .stsearch__favlbl{font-size:11px;color:#8a97a8;width:100%;margin-bottom:2px}
   .stsearch__empty{font-size:12px;color:#8a97a8;padding:4px 0}
+  /* --- Tablero de inicio (condiciones actuales) --- */
+  .tbl-sub{font-size:13px;color:var(--muted);margin:2px 0 0}
+  .tbl-fresh{color:var(--blue);font-weight:600}
+  .tbl-search{margin:16px 0 4px}
+  .tbl-search input{width:100%;padding:10px 14px;border:1px solid var(--hair);border-radius:9px;font-size:13.5px;color:var(--ink);background:#fff}
+  .tbl-search input:focus{outline:none;border-color:var(--blue)}
+  .tbl-results{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px;max-height:0;overflow:hidden;transition:max-height .2s}
+  .tbl-results.open{max-height:260px;overflow-y:auto;margin-bottom:8px}
+  .tbl-ritem{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--hair);padding:7px 11px;border-radius:8px;cursor:pointer;font-size:12.5px}
+  .tbl-ritem:hover{background:var(--lblue)}
+  .tbl-ritem .reg{color:#9aa7b8;font-size:10.5px}
+  .tbl-star{color:#d0d7e2;font-size:15px}.tbl-star.on{color:#e6b400}
+  .tbl-sectlbl{font-size:11.5px;color:var(--muted);font-weight:600;margin:16px 0 10px;letter-spacing:.4px}
+  .tbl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:12px}
+  .tbl-panel{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:15px 16px}
+  .tbl-phead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+  .tbl-pname{font-size:14.5px;font-weight:600;color:var(--navy)}
+  .tbl-ploc{font-size:11px;color:var(--muted);margin-top:1px}
+  .tbl-premove{border:none;background:none;cursor:pointer;color:#e6b400;font-size:15px;line-height:1}
+  .tbl-ptemp{display:flex;align-items:baseline;gap:7px;margin-bottom:12px}
+  .tbl-ptmax{font-size:28px;font-weight:600;color:var(--ink)}
+  .tbl-ptmin{font-size:13px;color:var(--muted)}
+  .tbl-pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;font-size:12px;padding-top:10px;border-top:1px solid var(--hair)}
+  .tbl-pcell{display:flex;align-items:center;gap:5px;color:var(--muted)}
+  .tbl-pcell b{color:var(--ink);font-weight:600}.tbl-pcell .rain{color:var(--blue);font-weight:600}
+  .tbl-pstate{margin-top:10px;font-size:10.5px;display:inline-flex;align-items:center;gap:5px}
+  .tbl-pstate.on{color:#1d9e75}.tbl-pstate.off{color:#9aa7b8}
+  .tbl-dot{width:7px;height:7px;border-radius:50%}
+  .tbl-empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:13px;background:#fff;border:1px dashed var(--hair);border-radius:14px}
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
   .card{background:#fff;border-radius:10px;padding:12px;border:1px solid var(--hair)}
   .card .lbl{font-size:12px;color:var(--mut);margin-bottom:4px}
@@ -138,12 +167,13 @@
   </div>
 </div></header>
 <nav class="pages"><div class="wrap">
-  <button class="active" onclick="setPage(0)" data-i18n="nav_mildew"></button>
-  <button onclick="setPage(1)" data-i18n="nav_alt"></button>
-  <button onclick="setPage(2)" data-i18n="nav_bot"></button>
-  <button onclick="setPage(3)" data-i18n="nav_scl"></button>
-  <button onclick="setPage(4)" data-i18n="nav_roya"></button>
-  <button onclick="setPage(5)" data-i18n="nav_stemph"></button>
+  <button class="active" onclick="setPage(0)" data-i18n="nav_inicio"></button>
+  <button onclick="setPage(1)" data-i18n="nav_mildew"></button>
+  <button onclick="setPage(2)" data-i18n="nav_alt"></button>
+  <button onclick="setPage(3)" data-i18n="nav_bot"></button>
+  <button onclick="setPage(4)" data-i18n="nav_scl"></button>
+  <button onclick="setPage(5)" data-i18n="nav_roya"></button>
+  <button onclick="setPage(6)" data-i18n="nav_stemph"></button>
 </div></nav>
 
 <div class="wrap">
@@ -160,8 +190,19 @@
 </div>
 
 <div id="allpages">
-<!-- P0 MILDEW -->
+<!-- P0 INICIO (Tablero de condiciones actuales) -->
 <div class="page active" id="p0">
+  <h2><span data-i18n="tbl_title"></span></h2>
+  <p class="tbl-sub"><span data-i18n="tbl_source"></span> · <span id="tbl-ts"></span> <span class="tbl-fresh" id="tbl-fresh"></span></p>
+  <div class="tbl-search"><input type="text" id="tbl-q" oninput="tblSearch()" placeholder=""></div>
+  <div class="tbl-results" id="tbl-results"></div>
+  <div class="tbl-sectlbl" data-i18n="tbl_mine"></div>
+  <div id="tbl-grid" class="tbl-grid"></div>
+  <div class="foot" data-i18n="tbl_foot" style="margin-top:20px"></div>
+</div>
+
+<!-- P0 MILDEW -->
+<div class="page" id="p1">
   <h2><span data-i18n="m_title"></span><span class="phase-tag phase-spor" data-i18n="phase_spor"></span></h2>
   <p class="sub"><i>Peronospora destructor</i> · <span data-i18n="m_sub"></span></p>
   <button class="doclink" onclick="openDoc('mildew')" data-i18n="doclink"></button>
@@ -180,10 +221,10 @@
 </div>
 
 <!-- P1 ALTERNARIA -->
-<div class="page" id="p1">
+<div class="page" id="p2">
   <h2><span data-i18n="alt_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
   <p class="sub" data-i18n="alt_sub"></p>
-  <div class="subnav"><button class="active" onclick="setSub(1,0)" data-i18n-html="alt_t0"></button><button onclick="setSub(1,1)" data-i18n-html="alt_t1"></button><button onclick="setSub(1,2)" data-i18n-html="alt_t2"></button></div>
+  <div class="subnav"><button class="active" onclick="setSub(2,0)" data-i18n-html="alt_t0"></button><button onclick="setSub(2,1)" data-i18n-html="alt_t1"></button><button onclick="setSub(2,2)" data-i18n-html="alt_t2"></button></div>
   <div class="subpage active" id="s1-0">
     <div class="info" data-i18n-html="ap_info"></div>
     <button class="doclink" onclick="openDoc('porri')" data-i18n="doclink"></button>
@@ -212,10 +253,10 @@
 </div>
 
 <!-- P2 BOTRYTIS -->
-<div class="page" id="p2">
+<div class="page" id="p3">
   <h2><span data-i18n="bot_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
   <p class="sub" data-i18n="bot_sub"></p>
-  <div class="subnav"><button class="active" onclick="setSub(2,0)" data-i18n-html="bot_t0"></button><button onclick="setSub(2,1)" data-i18n-html="bot_t1"></button></div>
+  <div class="subnav"><button class="active" onclick="setSub(3,0)" data-i18n-html="bot_t0"></button><button onclick="setSub(3,1)" data-i18n-html="bot_t1"></button></div>
   <div class="subpage active" id="s2-0">
     <div class="info" data-i18n-html="bs_info"></div>
     <button class="doclink" onclick="openDoc('squamosa')" data-i18n="doclink"></button>
@@ -236,11 +277,16 @@
 </div>
 
 <!-- P3 SCLEROTINIA -->
-<div class="page" id="p3">
+<div class="page" id="p4">
   <h2><span data-i18n="scl_title"></span><span class="phase-tag phase-idx" data-i18n="phase_idx"></span></h2>
   <p class="sub" data-i18n-html="scl_sub"></p>
   <button class="doclink" onclick="openDoc('sclero')" data-i18n="doclink"></button>
   <div class="note note-strong" data-i18n-html="scl_note"></div>
+  <div class="subnav" id="sc-variant" style="margin-bottom:14px">
+    <button class="active" onclick="setSclVar('s10')" data-i18n="scl_v_s10"></button>
+    <button onclick="setSclVar('sup')" data-i18n="scl_v_sup"></button>
+    <button onclick="setSclVar('aire')" data-i18n="scl_v_air"></button>
+  </div>
   <div class="stations" id="sc-st"></div>
   <div class="chartbox"><div class="h"><span><span data-i18n="scl_idx"></span> · <span id="sc-lbl"></span></span><span class="r" id="sc-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="sc-ch"></canvas></div>
     <div class="legend"><span><span class="dot" style="background:#534AB7"></span><span data-i18n="scl_leg_idx"></span></span><span><span class="dot" style="background:#CECBF6"></span><span data-i18n="scl_leg_ready"></span></span></div></div>
@@ -250,7 +296,7 @@
 </div>
 
 <!-- P4 ROYA (Puccinia allii) -->
-<div class="page" id="p4">
+<div class="page" id="p5">
   <h2><span data-i18n="roya_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
   <p class="sub"><i>Puccinia allii</i> · <span data-i18n="roya_sub"></span></p>
   <div class="info" data-i18n-html="roya_info"></div>
@@ -263,7 +309,7 @@
 </div>
 
 <!-- P5 STEMPHYLIUM (STEMcast 2.0) -->
-<div class="page" id="p5">
+<div class="page" id="p6">
   <h2><span data-i18n="stemph_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
   <p class="sub"><i>Stemphylium vesicarium</i> · <span data-i18n="stemph_sub"></span></p>
   <div class="info" data-i18n-html="stemph_info"></div>
@@ -289,7 +335,7 @@ const ORDER=(function(){
   });
   return seen.length?seen:['Chocalán','Talagante','Placilla','Peor es Nada','San Rafael'];
 })();
-const ch={};let sel=(function(){try{const f=JSON.parse(localStorage.getItem('sps_fav_stations')||'[]');if(Array.isArray(f)&&f.length&&ORDER.includes(f[0]))return f[0];}catch(e){}return ORDER[0]||'San Rafael';})();let curPage=0,curSub=[0,0,0,0];let LANG='es';let curDoc=null;
+const ch={};let sel=(function(){try{const f=JSON.parse(localStorage.getItem('sps_fav_stations')||'[]');if(Array.isArray(f)&&f.length&&ORDER.includes(f[0]))return f[0];}catch(e){}return ORDER[0]||'San Rafael';})();let curPage=0,curSub=[0,0,0,0,0,0,0];let LANG='es';let curDoc=null;let curSclVar='s10';
 const U=D.ui;
 function t(k){return U[k]?U[k][LANG==='es'?0:1]:k;}
 
@@ -485,14 +531,35 @@ function drawBot(sub){
 function drawSclero(){
   const st=sel,d=D.botrytis[st].data,lb=d.map(e=>e.f.slice(5));
   document.getElementById('sc-lbl').textContent=st;document.getElementById('sc-reg').textContent=t('region')+': '+D.botrytis[st].region;
-  document.getElementById('sc-d').textContent=d.filter(e=>e.scl>30).length;document.getElementById('sc-mx').textContent=Math.max(...d.map(e=>e.scl));document.getElementById('sc-rm').textContent=Math.max(...d.map(e=>e.scl_ready));
+  // Seleccionar la variante de temperatura (s10 / sup / aire) con respaldo
+  const v=curSclVar;
+  const pick=(e,k)=>{
+    if(v==='sup') return e['scl_sup'+k];
+    if(v==='aire') return e['scl_air'+k];
+    return e['scl_s10'+k];   // -10cm por defecto
+  };
+  // Si la variante elegida no tiene datos (columna ausente), usar el índice principal
+  const hasVar=d.length&&pick(d[0],'')!==undefined;
+  const idxOf=e=>hasVar?(pick(e,'')||0):e.scl;
+  const rdyOf=e=>hasVar?(pick(e,'_r')||0):e.scl_ready;
+  document.getElementById('sc-d').textContent=d.filter(e=>idxOf(e)>30).length;
+  document.getElementById('sc-mx').textContent=Math.max(...d.map(idxOf));
+  document.getElementById('sc-rm').textContent=Math.max(...d.map(rdyOf));
   dstroy('sc');
   ch.sc=new Chart(document.getElementById('sc-ch'),{data:{labels:lb,datasets:[
-    {type:'bar',data:d.map(e=>e.scl),backgroundColor:'#534AB7',borderRadius:2,barPercentage:0.9,categoryPercentage:0.95,order:2},
-    {type:'line',data:d.map(e=>e.scl_ready),borderColor:'#AFA9EC',backgroundColor:'rgba(175,169,236,0.15)',borderWidth:1.5,pointRadius:0,fill:true,order:1,tension:0.3}]},
+    {type:'bar',data:d.map(idxOf),backgroundColor:'#534AB7',borderRadius:2,barPercentage:0.9,categoryPercentage:0.95,order:2},
+    {type:'line',data:d.map(rdyOf),borderColor:'#AFA9EC',backgroundColor:'rgba(175,169,236,0.15)',borderWidth:1.5,pointRadius:0,fill:true,order:1,tension:0.3}]},
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
       scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,max:100,title:{display:true,text:t('scl_leg_idx'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}}},
-      plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>i.datasetIndex===0?t('tt_favidx')+': '+d[i.dataIndex].scl:t('tt_apoth')+': '+d[i.dataIndex].scl_ready}}}}});
+      plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>i.datasetIndex===0?t('tt_favidx')+': '+idxOf(d[i.dataIndex]):t('tt_apoth')+': '+rdyOf(d[i.dataIndex])}}}}});
+}
+function setSclVar(v){
+  curSclVar=v;
+  document.querySelectorAll('#sc-variant button').forEach(b=>b.classList.remove('active'));
+  const map={'s10':0,'sup':1,'aire':2};
+  const btns=document.querySelectorAll('#sc-variant button');
+  if(btns[map[v]])btns[map[v]].classList.add('active');
+  drawSclero();
 }
 function drawRoya(){
   const R=(D.roya&&D.roya[sel])?D.roya[sel]:{data:[],region:''};
@@ -522,13 +589,95 @@ function drawStemph(){
       plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>i.datasetIndex===0?t('dsv_cum')+': '+cum[i.dataIndex]:t('dsv_daily')+': '+d[i.dataIndex].dsv+(d[i.dataIndex].tm!=null?' · '+d[i.dataIndex].tm+'°C':'')}}}},
     plugins:[{afterDraw:c=>{const y=c.scales.y.getPixelForValue(15),ctx=c.ctx;ctx.save();ctx.strokeStyle='#A32D2D';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(c.scales.x.left,y);ctx.lineTo(c.scales.x.right,y);ctx.stroke();ctx.restore();}}]});
 }
+// --- Tablero de condiciones actuales (página de inicio) ---
+const TBL = /*__TABLERO__*/{"timestamp":null,"estaciones":{}}/*__ENDTBL__*/;
+const _DIRS=['N','NE','E','SE','S','SO','O','NO'];
+function tblDir(g){if(g==null)return '';return _DIRS[Math.round((g%360)/45)%8];}
+// Mapa nombre de estación -> id Agromet (para cruzar favoritas con datos del tablero)
+const NAME2ID = /*__NAME2ID__*/{}/*__ENDN2I__*/;
+function tblFavList(){
+  // Favoritas (por nombre) que tengan datos en el tablero
+  return getFavs().map(n=>({n:n, id:NAME2ID[n]}))
+    .filter(x=>x.id && TBL.estaciones[x.id]);
+}
+function tblPanel(nombre, id){
+  const e=TBL.estaciones[id]; if(!e)return '';
+  const on=(e.vigencia==='hoy');
+  const rain=(e.lluvia_24h>0)?`<span class="rain">${(e.lluvia_24h).toFixed(1)} mm</span>`:`<span>0 mm</span>`;
+  const tmax=(e.t_max!=null)?Math.round(e.t_max)+'°':'—';
+  const tmin=(e.t_min!=null)?Math.round(e.t_min)+'°':'—';
+  const hr=(e.hr!=null)?e.hr+'%':'—';
+  const v=(e.viento!=null)?(e.viento).toFixed(1):'—';
+  const vmax=(e.viento_max!=null)?Math.round(e.viento_max):'—';
+  const st=on
+    ?`<span class="tbl-pstate on"><span class="tbl-dot" style="background:#1d9e75"></span>${t('tbl_online')}</span>`
+    :`<span class="tbl-pstate off"><span class="tbl-dot" style="background:#c8d0da"></span>${t('tbl_ayer')}</span>`;
+  return `<div class="tbl-panel">
+    <div class="tbl-phead">
+      <div><div class="tbl-pname">${nombre}</div><div class="tbl-ploc">${e.comuna||''} · ${e.region||''}</div></div>
+      <button class="tbl-premove" onclick="toggleFav('${nombre.replace(/'/g,"\\'")}')" title="${t('tbl_remove')}">★</button>
+    </div>
+    <div class="tbl-ptemp"><span class="tbl-ptmax">${tmax}</span><span class="tbl-ptmin">/ ${tmin} ${t('tbl_min')}</span></div>
+    <div class="tbl-pgrid">
+      <div class="tbl-pcell">💧 <b>${hr}</b> HR</div>
+      <div class="tbl-pcell">🌧 ${rain}</div>
+      <div class="tbl-pcell">💨 <b>${v}</b> km/h ${tblDir(e.dir_viento)}</div>
+      <div class="tbl-pcell">↗ ${t('tbl_gust')} <b>${vmax}</b></div>
+    </div>
+    ${st}
+  </div>`;
+}
+function tblSearch(){
+  const q=document.getElementById('tbl-q').value.trim().toLowerCase();
+  const box=document.getElementById('tbl-results');
+  if(!q){box.className='tbl-results';box.innerHTML='';return;}
+  // Buscar entre TODAS las estaciones con datos en el tablero
+  const hits=[];
+  for(const id in TBL.estaciones){
+    const e=TBL.estaciones[id];
+    const nombre=e.nombre||id;
+    if(nombre.toLowerCase().includes(q)||(e.comuna||'').toLowerCase().includes(q)||(e.region||'').toLowerCase().includes(q)){
+      hits.push({id, nombre, region:e.region||''});
+    }
+  }
+  box.className='tbl-results open';
+  if(!hits.length){box.innerHTML=`<div class="tbl-ritem" style="cursor:default">${t('st_noresult')}</div>`;return;}
+  box.innerHTML=hits.slice(0,30).map(h=>{
+    const on=getFavs().includes(h.nombre);
+    return `<div class="tbl-ritem" onclick="toggleFav('${h.nombre.replace(/'/g,"\\'")}')">
+      <span class="tbl-star ${on?'on':''}">${on?'★':'☆'}</span>
+      ${h.nombre} <span class="reg">${h.region}</span></div>`;
+  }).join('');
+}
+function drawTablero(){
+  // Marca de tiempo
+  const ts=document.getElementById('tbl-ts');
+  const fresh=document.getElementById('tbl-fresh');
+  if(TBL.timestamp){
+    ts.textContent=t('tbl_updated')+' '+TBL.timestamp.replace('T',' ');
+    fresh.textContent='';
+  }else{
+    ts.textContent=t('tbl_nodata');fresh.textContent='';
+  }
+  document.getElementById('tbl-q').placeholder=t('st_search_ph');
+  // Cuadrícula de favoritas
+  const favs=tblFavList();
+  const g=document.getElementById('tbl-grid');
+  if(!favs.length){g.className='';g.innerHTML=`<div class="tbl-empty">${t('tbl_empty')}</div>`;return;}
+  g.className='tbl-grid';
+  g.innerHTML=favs.map(f=>tblPanel(f.n,f.id)).join('');
+  // refrescar resultados de búsqueda por si cambió una estrella
+  if(document.getElementById('tbl-q').value.trim())tblSearch();
+}
+
 function renderAll(){
-  if(curPage===0){mkSt('m-st');drawMildewStack();drawMildew();}
-  else if(curPage===1){const s=curSub[1];mkSt(['ap-st','ad-st','ab-st'][s]);drawAlt(s);}
-  else if(curPage===2){const s=curSub[2];mkSt(['bs-st','bc-st'][s]);drawBot(s);}
-  else if(curPage===3){mkSt('sc-st');drawSclero();}
-  else if(curPage===4){mkSt('ra-st');drawRoya();}
-  else if(curPage===5){mkSt('se-st');drawStemph();}
+  if(curPage===0){drawTablero();}
+  else if(curPage===1){mkSt('m-st');drawMildewStack();drawMildew();}
+  else if(curPage===2){const s=curSub[2];mkSt(['ap-st','ad-st','ab-st'][s]);drawAlt(s);}
+  else if(curPage===3){const s=curSub[3];mkSt(['bs-st','bc-st'][s]);drawBot(s);}
+  else if(curPage===4){mkSt('sc-st');drawSclero();}
+  else if(curPage===5){mkSt('ra-st');drawRoya();}
+  else if(curPage===6){mkSt('se-st');drawStemph();}
 }
 applyLang();
 renderAll();
