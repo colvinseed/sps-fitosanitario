@@ -113,6 +113,8 @@ def condiciones_estacion(est):
         'nombre': est.get('nombre'),
         'comuna': est.get('comuna'),
         'region': est.get('region'),
+        'lat': _num(est.get('latitud')),
+        'lon': _num(est.get('longitud')),
         'institucion': est.get('institucion_sigla'),
         'estado': est.get('status_name'),
         'vigencia': 'hoy' if hoy else 'ayer',
@@ -167,6 +169,31 @@ def tablero(ids_interes=None, session=None):
         'estaciones': out,
         'name2id': name2id,
     }
+
+
+def metadata_estaciones(res_tablero):
+    """
+    Deriva la metadata que necesita compute_all a partir de la salida de
+    tablero(): {nombre_estacion: {'region':..., 'lat':..., 'lon':...}}.
+
+    El JSON del mapa es la fuente autoritativa de región y coordenadas, así que
+    una sola descarga sirve para dos fines: alimentar el tablero de condiciones
+    y entregar la metadata geográfica al motor de enfermedades (que la usa, por
+    ejemplo, para el cálculo astronómico de horas de oscuridad en MILIONCAST).
+    """
+    name2id = res_tablero.get('name2id') or {}
+    ests = res_tablero.get('estaciones') or {}
+    meta = {}
+    for nombre, clave in name2id.items():
+        e = ests.get(clave)
+        if not e:
+            continue
+        meta[nombre] = {
+            'region': e.get('region') or '',
+            'lat': e.get('lat') if e.get('lat') is not None else -35.0,
+            'lon': e.get('lon') if e.get('lon') is not None else -71.3,
+        }
+    return meta
 
 
 if __name__ == '__main__':

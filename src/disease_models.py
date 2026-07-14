@@ -506,15 +506,15 @@ def compute_all(station_dfs, window_days=None, station_meta=None):
             m_rows.append(dict(f=ds, dc=1 if dc.get(ds) else 0, mc=ls, tm=tm, wh=wh))
 
         # --- Alternaria + Botrytis (por evento de mojado diario) ---
-        # Si la estación trae temperatura de suelo (Tsoil, TS10 de Agromet),
-        # se agrega al 'daily' para que Sclerotinia la use.
-        if 'Tsoil' in df.columns:
-            daily = df.groupby('date').agg(Tmean=('T', 'mean'),
-                                           HRmean=('HR', 'mean'),
-                                           Tsoil=('Tsoil', 'mean'))
-        else:
-            daily = df.groupby('date').agg(Tmean=('T', 'mean'),
-                                           HRmean=('HR', 'mean'))
+        # Si la estación trae temperaturas de suelo (Tsoil0 = superficie/TS00,
+        # Tsoil10 = -10 cm/TS10, de Agromet), se agregan al 'daily' para que
+        # Sclerotinia calcule sus variantes por profundidad.
+        agg = dict(Tmean=('T', 'mean'), HRmean=('HR', 'mean'))
+        if 'Tsoil0' in df.columns:
+            agg['Tsoil0'] = ('Tsoil0', 'mean')
+        if 'Tsoil10' in df.columns:
+            agg['Tsoil10'] = ('Tsoil10', 'mean')
+        daily = df.groupby('date').agg(**agg)
         scl = compute_sclerotinia(daily)
 
         a_rows, b_rows, r_rows, st_rows = [], [], [], []
@@ -525,24 +525,29 @@ def compute_all(station_dfs, window_days=None, station_meta=None):
                                porri=alt_porri(Tm, dur),
                                dauci=alt_dauci_dsv(Tm, dur),
                                bras=alt_brassicae(Tm, dur)))
-            # Sclerotinia: variantes por profundidad de suelo (sup / -10cm / aire)
-            sc_sup = scl.get('sup', {}).get(ds, (0, 0))
-            sc_s10 = scl.get('s10', {}).get(ds, (0, 0))
+            # Sclerotinia: variantes por profundidad de suelo (sup / -10cm / aire).
+            # IMPORTANTE: solo se registran las claves de las variantes que
+            # EXISTEN. Si una estación no reporta suelo, la clave se omite y el
+            # template cae a la variante de aire, en vez de mostrar ceros.
             sc_air = scl.get('aire', {}).get(ds, (0, 0))
-            # Preferida para el índice principal: -10cm > superficie > aire
+            b_row = dict(f=ds, wet=dur, tm=Tm,
+                         squa=bot_squamosa(Tm, dur),
+                         cin=bot_cinerea(Tm, dur),
+                         scl_air=sc_air[0], scl_air_r=sc_air[1])
+            if 'sup' in scl:
+                sc_sup = scl['sup'].get(ds, (0, 0))
+                b_row['scl_sup'], b_row['scl_sup_r'] = sc_sup[0], sc_sup[1]
             if 's10' in scl:
-                sidx, sready = sc_s10
+                sc_s10 = scl['s10'].get(ds, (0, 0))
+                b_row['scl_s10'], b_row['scl_s10_r'] = sc_s10[0], sc_s10[1]
+            # Índice principal: preferencia -10cm > superficie > aire
+            if 's10' in scl:
+                b_row['scl'], b_row['scl_ready'] = b_row['scl_s10'], b_row['scl_s10_r']
             elif 'sup' in scl:
-                sidx, sready = sc_sup
+                b_row['scl'], b_row['scl_ready'] = b_row['scl_sup'], b_row['scl_sup_r']
             else:
-                sidx, sready = sc_air
-            b_rows.append(dict(f=ds, wet=dur, tm=Tm,
-                               squa=bot_squamosa(Tm, dur),
-                               cin=bot_cinerea(Tm, dur),
-                               scl=sidx, scl_ready=sready,
-                               scl_sup=sc_sup[0], scl_sup_r=sc_sup[1],
-                               scl_s10=sc_s10[0], scl_s10_r=sc_s10[1],
-                               scl_air=sc_air[0], scl_air_r=sc_air[1]))
+                b_row['scl'], b_row['scl_ready'] = sc_air[0], sc_air[1]
+            b_rows.append(b_row)
             r_rows.append(dict(f=ds, wet=dur, tm=Tm,
                                allii=puccinia_allii(Tm, dur)))
             st_rows.append(dict(f=ds, wet=dur, tm=Tm,

@@ -531,17 +531,20 @@ function drawBot(sub){
 function drawSclero(){
   const st=sel,d=D.botrytis[st].data,lb=d.map(e=>e.f.slice(5));
   document.getElementById('sc-lbl').textContent=st;document.getElementById('sc-reg').textContent=t('region')+': '+D.botrytis[st].region;
-  // Seleccionar la variante de temperatura (s10 / sup / aire) con respaldo
+  // Variantes disponibles según los datos de esta estación
+  const has={s10:d.length&&d[0].scl_s10!==undefined,
+             sup:d.length&&d[0].scl_sup!==undefined,
+             aire:d.length&&d[0].scl_air!==undefined};
+  const btns=document.querySelectorAll('#sc-variant button');
+  const keys=['s10','sup','aire'];
+  keys.forEach((k,i)=>{if(btns[i])btns[i].style.display=has[k]?'':'none';});
+  // Si la variante actual no existe, caer a la primera disponible
+  if(!has[curSclVar])curSclVar=keys.find(k=>has[k])||'aire';
+  btns.forEach((b,i)=>b.classList.toggle('active',keys[i]===curSclVar));
   const v=curSclVar;
-  const pick=(e,k)=>{
-    if(v==='sup') return e['scl_sup'+k];
-    if(v==='aire') return e['scl_air'+k];
-    return e['scl_s10'+k];   // -10cm por defecto
-  };
-  // Si la variante elegida no tiene datos (columna ausente), usar el índice principal
-  const hasVar=d.length&&pick(d[0],'')!==undefined;
-  const idxOf=e=>hasVar?(pick(e,'')||0):e.scl;
-  const rdyOf=e=>hasVar?(pick(e,'_r')||0):e.scl_ready;
+  const key=(v==='sup')?'scl_sup':(v==='aire')?'scl_air':'scl_s10';
+  const idxOf=e=>(e[key]!==undefined?e[key]:e.scl)||0;
+  const rdyOf=e=>(e[key+'_r']!==undefined?e[key+'_r']:e.scl_ready)||0;
   document.getElementById('sc-d').textContent=d.filter(e=>idxOf(e)>30).length;
   document.getElementById('sc-mx').textContent=Math.max(...d.map(idxOf));
   document.getElementById('sc-rm').textContent=Math.max(...d.map(rdyOf));
@@ -553,14 +556,7 @@ function drawSclero(){
       scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,max:100,title:{display:true,text:t('scl_leg_idx'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}}},
       plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>i.datasetIndex===0?t('tt_favidx')+': '+idxOf(d[i.dataIndex]):t('tt_apoth')+': '+rdyOf(d[i.dataIndex])}}}}});
 }
-function setSclVar(v){
-  curSclVar=v;
-  document.querySelectorAll('#sc-variant button').forEach(b=>b.classList.remove('active'));
-  const map={'s10':0,'sup':1,'aire':2};
-  const btns=document.querySelectorAll('#sc-variant button');
-  if(btns[map[v]])btns[map[v]].classList.add('active');
-  drawSclero();
-}
+function setSclVar(v){curSclVar=v;drawSclero();}
 function drawRoya(){
   const R=(D.roya&&D.roya[sel])?D.roya[sel]:{data:[],region:''};
   const d=R.data,lb=d.map(e=>e.f.slice(5));
