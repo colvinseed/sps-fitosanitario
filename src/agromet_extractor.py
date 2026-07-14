@@ -209,37 +209,34 @@ def parse_csv(texto):
     out = pd.DataFrame()
     out['Date'] = pd.to_datetime(df[cols[0]], format='%d-%m-%Y %H:%M', errors='coerce')
 
-    # Mapear por nombre de columna (robusto ante orden de variables)
-    def find_col(keyword, exclude=None):
-        for c in cols[1:]:
-            cl = c.lower()
-            if 'de datos' in cl:
-                continue
-            if keyword.lower() in cl and (exclude is None or exclude.lower() not in cl):
-                return c
-        return None
+    # Mapear por nombre de columna (robusto ante orden de variables).
+    # NOMBRES REALES DEL CSV DE AGROMET (verificados 2026-07-14, INIA-317):
+    #   "Tiempo UTC-4"
+    #   "Temperatura del Aire ºC"
+    #   "Humedad Relativa %"
+    #   "Precipitación Acumulada mm"
+    #   "Temp. de Superficie ºC"           <- suelo superficie (TS00)
+    #   "Temp. de Suelo Bajo 10cm ºC"      <- suelo -10 cm (TS10)
+    # Ojo: las de suelo usan la abreviatura "Temp.", no "Temperatura", y la de
+    # superficie no contiene la palabra "suelo". Cada variable agrega además una
+    # columna "... % de datos" que debe ignorarse.
+    # Se evita hacer coincidir acentos: el CSV llega en latin-1/UTF-8 mezclado.
+    def _cols_utiles():
+        return [c for c in cols[1:] if 'de datos' not in c.lower()]
 
-    # Temperatura de AIRE: contiene 'temperatura' pero NO 'suelo'
-    c_t = find_col('Temperatura', exclude='suelo')
-    c_hr = find_col('Humedad')
-    c_pp = find_col('Precipita')
-    # Temperaturas de SUELO: superficie (0 cm) y -10 cm. En el CSV de Agromet
-    # ambas dicen 'Temperatura de suelo'; se distinguen por la profundidad en el
-    # nombre de la columna (0 / superficie vs 10). Se detectan de forma robusta.
-    c_ts0 = None    # superficie (TS00)
-    c_ts10 = None   # -10 cm (TS10)
-    for c in cols[1:]:
+    c_t = c_hr = c_pp = c_ts0 = c_ts10 = None
+    for c in _cols_utiles():
         cl = c.lower()
-        if 'de datos' in cl:
-            continue
-        if 'temperatura' in cl and 'suelo' in cl:
-            # distinguir por profundidad indicada en el encabezado
-            if '10' in cl:
-                c_ts10 = c
-            elif ('0' in cl or 'superf' in cl):
-                c_ts0 = c
-            elif c_ts0 is None:
-                c_ts0 = c    # primera de suelo sin marca clara -> superficie
+        if 'aire' in cl and c_t is None:
+            c_t = c                                   # Temperatura del Aire
+        elif 'humedad' in cl and c_hr is None:
+            c_hr = c                                  # Humedad Relativa
+        elif 'precipita' in cl and c_pp is None:
+            c_pp = c                                  # Precipitación Acumulada
+        elif 'superficie' in cl and c_ts0 is None:
+            c_ts0 = c                                 # Temp. de Superficie
+        elif 'suelo' in cl and '10' in cl and c_ts10 is None:
+            c_ts10 = c                                # Temp. de Suelo Bajo 10cm
 
     out['T'] = pd.to_numeric(df[c_t], errors='coerce') if c_t else pd.NA
     out['HR'] = pd.to_numeric(df[c_hr], errors='coerce') if c_hr else pd.NA
