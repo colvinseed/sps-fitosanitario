@@ -336,8 +336,8 @@
   "<b>Reading:</b> germination (apothecia) advances progressively as temperature rises toward 18–20 °C. The infection index combines that germination with the daily condition (7–25 °C, RH≥80%). Low values in cold midwinter are expected; risk grows toward spring."
  ],
  "scl_foot": [
-  "Germinación carpogénica de dos fases (Clarkson et al. 2007, coeficientes originales). Salida referencial, sin recalibrar a Chile. Usa T de aire como proxy de T de suelo.",
-  "Two-phase carpogenic germination (Clarkson et al. 2007, original coefficients). Referential output, not recalibrated to Chile. Uses air T as a proxy for soil T."
+  "Germinación carpogénica de dos fases (Clarkson et al. 2007, coeficientes originales). Salida referencial, sin recalibrar a Chile. Usa T de suelo de Agromet (superficie TS00 o −10 cm TS10, seleccionable); cae a T de aire solo si la estación no mide suelo.",
+  "Two-phase carpogenic germination (Clarkson et al. 2007, original coefficients). Referential output, not recalibrated to Chile. Uses Agromet soil T (surface TS00 or −10 cm TS10, selectable); falls back to air T only if the station lacks soil sensors."
  ],
  "tt_pos": [
   "positivo",

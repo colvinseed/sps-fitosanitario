@@ -39,8 +39,8 @@ from build_artifact import build             # noqa: E402
 # El colchón extra (FETCH_DAYS - DISPLAY_DAYS = 30 días) garantiza que los
 # modelos acumulativos tengan su historia completa hacia atrás en TODOS los
 # días visibles, no solo en los más recientes.
-DISPLAY_DAYS = 7
-FETCH_DAYS = 37
+DISPLAY_DAYS = 14
+FETCH_DAYS = 44
 
 
 def main():
