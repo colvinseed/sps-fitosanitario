@@ -134,7 +134,7 @@ _HEADERS = {
 }
 
 
-def _build_payload(estacion_id, desde, hasta, variables=VARIABLES):
+def _build_payload(estacion_id, desde, hasta, variables=VARIABLES, intervalo='hour'):
     """Arma la lista de tuplas del formulario (permite claves repetidas).
     estacion_id debe incluir el prefijo completo: 'INIA-317', 'EXT-156', etc.
     (INIA = estaciones propias INIA; EXT = externas: DMC, ARAUCO, CEAZA...)."""
@@ -142,7 +142,7 @@ def _build_payload(estacion_id, desde, hasta, variables=VARIABLES):
     for v in variables:
         data.append(('variables[]', v))
     data += [
-        ('intervalo', 'hour'),
+        ('intervalo', intervalo),
         ('desde', desde),
         ('hasta', hasta),
         ('month_desde', '1'), ('month_hasta', '1'),
@@ -153,7 +153,7 @@ def _build_payload(estacion_id, desde, hasta, variables=VARIABLES):
     return data
 
 
-def fetch_csv(estacion_id, desde, hasta, variables=VARIABLES, session=None, retries=3):
+def fetch_csv(estacion_id, desde, hasta, variables=VARIABLES, session=None, retries=3, intervalo='hour'):
     """
     Ejecuta el POST + descarga del CSV para una estación.
     estacion_id: int/str del id interno Agromet (ej 317).
@@ -162,7 +162,7 @@ def fetch_csv(estacion_id, desde, hasta, variables=VARIABLES, session=None, retr
     """
     s = session or requests.Session()
     s.headers.update(_HEADERS)
-    payload = _build_payload(estacion_id, desde, hasta, variables)
+    payload = _build_payload(estacion_id, desde, hasta, variables, intervalo)
     for intento in range(1, retries + 1):
         try:
             r = s.post(BASE, data=payload, timeout=90)
@@ -241,16 +241,59 @@ def parse_csv(texto):
     out['T'] = pd.to_numeric(df[c_t], errors='coerce') if c_t else pd.NA
     out['HR'] = pd.to_numeric(df[c_hr], errors='coerce') if c_hr else pd.NA
     out['P'] = pd.to_numeric(df[c_pp], errors='coerce') if c_pp else 0.0
+    # IMPORTANTE (verificado 2026-07-14 con INIA-49): pese al rótulo
+    # "Precipitación Acumulada", Agromet NO entrega una serie acumulada corrida:
+    # el código de la variable es PP_SUM, la SUMA DENTRO DEL INTERVALO. Con
+    # intervalo horario, cada fila trae los mm caídos EN ESA HORA (la serie sube
+    # y baja: p.ej. ... 6.9, 4.5 ...). Por eso se entrega ya como 'precip_h' y
+    # NO debe des-acumularse con diff() (eso anularía casi toda la lluvia).
+    out['precip_h'] = out['P'].fillna(0.0)
     if c_ts0:
         out['Tsoil0'] = pd.to_numeric(df[c_ts0], errors='coerce')   # superficie
     if c_ts10:
         out['Tsoil10'] = pd.to_numeric(df[c_ts10], errors='coerce')  # -10 cm
 
     out = out.dropna(subset=['Date']).sort_values('Date').reset_index(drop=True)
-    cols_out = ['Date', 'T', 'P', 'HR']
+    cols_out = ['Date', 'T', 'P', 'HR', 'precip_h']
     if c_ts0:  cols_out.append('Tsoil0')
     if c_ts10: cols_out.append('Tsoil10')
     return out[cols_out]
+
+
+def acumulado_anual(estacion_id, hasta_fecha=None, session=None):
+    """
+    Precipitación acumulada del año en curso, desde el 1 de enero hasta
+    'hasta_fecha' INCLUSIVE (por defecto: ayer). Devuelve mm (float) o None.
+
+    Pide intervalo DIARIO (~200 filas en vez de ~4.800 horarias) y suma la
+    columna de precipitación, que en Agromet es PP_SUM = suma del intervalo.
+    Si el intervalo diario no estuviera disponible, cae a horario.
+
+    Se calcula UNA VEZ AL DÍA (en la corrida de las 06:00) y llega hasta AYER;
+    el tablero le suma la lluvia de hoy, que llega cada hora desde el mapa. Así
+    la cifra anual queda al día sin peticiones extra cada hora.
+    """
+    from datetime import date, timedelta
+    hoy = date.today()
+    if hasta_fecha is None:
+        hasta_fecha = hoy - timedelta(days=1)
+    if hasta_fecha < date(hoy.year, 1, 1):
+        return 0.0
+    desde = date(hoy.year, 1, 1).strftime('%d-%m-%Y')
+    hasta = hasta_fecha.strftime('%d-%m-%Y')
+
+    for intervalo in ('day', 'hour'):
+        try:
+            texto = fetch_csv(estacion_id, desde, hasta, variables=('PP_SUM',),
+                              session=session, retries=2, intervalo=intervalo)
+            df = parse_csv(texto)
+            if df is None or not len(df):
+                continue
+            total = float(pd.to_numeric(df['P'], errors='coerce').fillna(0).sum())
+            return round(total, 1)
+        except Exception:
+            continue
+    return None
 
 
 def fetch_station(estacion_id, desde, hasta, **kw):

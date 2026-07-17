@@ -23,6 +23,7 @@ el HTML. No requiere login. (En entornos de red restringida puede dar 403; en
 GitHub Actions funciona.)
 """
 
+import os
 import re
 import json
 import time
@@ -108,6 +109,8 @@ def condiciones_estacion(est):
     actual = hoy if hoy else ayer
     if not actual:
         return None
+    # Lluvia de ayer: día calendario completo (cifra exacta, no una ventana móvil)
+    pp_ayer = _num(ayer.get('PP-SUM')) if ayer else None
     return {
         'id': est.get('id'),
         'nombre': est.get('nombre'),
@@ -121,7 +124,8 @@ def condiciones_estacion(est):
         't_min': _num(actual.get('TA-MIN')),
         't_max': _num(actual.get('TA-MAX')),
         'hr': _num(actual.get('HR-AVG')),
-        'lluvia_24h': _num(actual.get('PP-SUM')),
+        'lluvia_hoy': _num(actual.get('PP-SUM')),   # acumulado desde medianoche
+        'lluvia_ayer': pp_ayer,                     # día calendario anterior
         'viento': _num(actual.get('VV-AVG')),
         'viento_max': _num(actual.get('VV-MAX')),
         'dir_viento': _num(actual.get('DV-AVG')),
@@ -220,12 +224,25 @@ if __name__ == '__main__':
         pedido = None    # por defecto: las 47 estaciones de SPS Chile
 
     res = tablero(pedido)
+    # Preservar el acumulado anual que calcula la corrida diaria: este script
+    # corre cada hora y NO lo recalcula (sería una petición por estación).
+    # Sin esto, la actualización horaria borraría la cifra del año.
+    try:
+        if os.path.exists(args.out):
+            with open(args.out, encoding='utf-8') as f:
+                previo = json.load(f)
+            if previo.get('anual'):
+                res['anual'] = previo['anual']
+            if previo.get('name2id') and not res.get('name2id'):
+                res['name2id'] = previo['name2id']
+    except Exception:
+        pass
     if res['estaciones']:
         print(f"Extraídas {len(res['estaciones'])} estaciones @ {res['timestamp']}\n")
         for clave, c in res['estaciones'].items():
             print(f"  [{clave}] {c['nombre']} ({c['comuna']}): "
                   f"{c['t_min']}–{c['t_max']}°C, HR {c['hr']}%, "
-                  f"lluvia {c['lluvia_24h']}mm, viento {c['viento']} km/h "
+                  f"lluvia hoy {c['lluvia_hoy']}mm (ayer {c['lluvia_ayer']}mm), viento {c['viento']} km/h "
                   f"[{c['vigencia']}, {c['estado']}]")
         import os
         os.makedirs(os.path.dirname(args.out), exist_ok=True)

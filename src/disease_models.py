@@ -454,16 +454,27 @@ def compute_sclerotinia(daily):
 # ===========================================================================
 def prepare_station_df(df):
     """
-    Normaliza un DataFrame crudo (columnas Date, T, P, HR) al formato interno:
-    des-acumula precipitación, añade columnas date/hour/precip_h.
+    Normaliza un DataFrame crudo al formato interno: añade date/hour y asegura
+    la columna precip_h (mm caídos en cada hora).
+
+    Dos convenciones de precipitación conviven según la fuente:
+      - Agromet (PP_SUM): cada fila ya trae los mm DE ESA HORA. El extractor
+        entrega la columna 'precip_h' hecha, y aquí se respeta tal cual.
+      - vilab (legado): entrega una serie ACUMULADA monótona, que sí requiere
+        des-acumular con diff().
+    Aplicar diff() a datos ya horarios anularía casi toda la lluvia (la serie
+    sube y baja, y los deltas negativos se recortan a 0), así que la distinción
+    es importante.
     """
     df = df.copy()
     df['Date'] = pd.to_datetime(df['Date'])
     df = df.sort_values('Date').reset_index(drop=True)
-    # Des-acumular precipitación (viene como serie acumulada monótona)
-    df['precip_h'] = df['P'].diff()
-    df.loc[df.index[0], 'precip_h'] = 0
-    df.loc[df['precip_h'] < 0, 'precip_h'] = 0
+    if 'precip_h' not in df.columns:
+        # Fuente acumulada (vilab): des-acumular
+        df['precip_h'] = df['P'].diff()
+        df.loc[df.index[0], 'precip_h'] = 0
+        df.loc[df['precip_h'] < 0, 'precip_h'] = 0
+    df['precip_h'] = df['precip_h'].fillna(0.0)
     df['date'] = df['Date'].dt.date
     df['hour'] = df['Date'].dt.hour
     return df

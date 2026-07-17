@@ -82,6 +82,12 @@
   .tbl-pstate.on{color:#1d9e75}.tbl-pstate.off{color:#9aa7b8}
   .tbl-dot{width:7px;height:7px;border-radius:50%}
   .tbl-empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:13px;background:#fff;border:1px dashed var(--hair);border-radius:14px}
+  .tbl-rain{margin-top:10px;padding-top:9px;border-top:1px solid var(--hair)}
+  .tbl-rain__lbl{font-size:10.5px;color:var(--muted);margin-bottom:5px}
+  .tbl-rain__row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;text-align:center}
+  .tbl-rain__row .k{display:block;font-size:9.5px;color:#9aa7b8;margin-bottom:1px}
+  .tbl-rain__row b{font-size:12px;color:var(--ink);font-weight:600}
+  .tbl-rain__row .rain{color:var(--blue)}
   .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
   .card{background:#fff;border-radius:10px;padding:12px;border:1px solid var(--hair)}
   .card .lbl{font-size:12px;color:var(--mut);margin-bottom:4px}
@@ -586,7 +592,27 @@ function drawStemph(){
     plugins:[{afterDraw:c=>{const y=c.scales.y.getPixelForValue(15),ctx=c.ctx;ctx.save();ctx.strokeStyle='#A32D2D';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(c.scales.x.left,y);ctx.lineTo(c.scales.x.right,y);ctx.stroke();ctx.restore();}}]});
 }
 // --- Tablero de condiciones actuales (página de inicio) ---
-const TBL = /*__TABLERO__*/{"timestamp":null,"estaciones":{}}/*__ENDTBL__*/;
+// Los datos vienen de dos fuentes, en este orden:
+//   1. condiciones.json publicado junto a esta página (actualizado cada hora
+//      por el workflow tablero.yml). Al estar en el MISMO dominio, el navegador
+//      puede leerlo sin restricción de origen cruzado.
+//   2. Los datos incrustados abajo (de la corrida diaria), como respaldo si la
+//      lectura falla o si la página se abre desde un archivo local.
+let TBL = /*__TABLERO__*/{"timestamp":null,"estaciones":{}}/*__ENDTBL__*/;
+function cargarCondiciones(){
+  // Evita caché: sin esto el navegador podría servir una copia vieja.
+  fetch('condiciones.json?_=' + Date.now())
+    .then(r => r.ok ? r.json() : null)
+    .then(j => {
+      if(j && j.estaciones && Object.keys(j.estaciones).length){
+        // Conservar el mapa nombre->clave si el JSON horario no lo trae
+        if(!j.name2id && TBL.name2id) j.name2id = TBL.name2id;
+        TBL = j;
+        if(curPage === 0) drawTablero();
+      }
+    })
+    .catch(() => {});   // respaldo silencioso: quedan los datos incrustados
+}
 const _DIRS=['N','NE','E','SE','S','SO','O','NO'];
 function tblDir(g){if(g==null)return '';return _DIRS[Math.round((g%360)/45)%8];}
 // Mapa nombre de estación -> id Agromet (para cruzar favoritas con datos del tablero)
@@ -599,7 +625,14 @@ function tblFavList(){
 function tblPanel(nombre, id){
   const e=TBL.estaciones[id]; if(!e)return '';
   const on=(e.vigencia==='hoy');
-  const rain=(e.lluvia_24h>0)?`<span class="rain">${(e.lluvia_24h).toFixed(1)} mm</span>`:`<span>0 mm</span>`;
+  const mm=v=>(v===null||v===undefined)?'—':(v).toFixed(1);
+  const azul=(v,txt)=>(v>0)?`<span class="rain">${txt}</span>`:`<span>${txt}</span>`;
+  const hoy=e.lluvia_hoy, ayer=e.lluvia_ayer;
+  // Acumulado del año = lo calculado hasta AYER en la corrida diaria + la
+  // lluvia de hoy, que llega cada hora. Así la cifra queda al día sin pedir
+  // el histórico completo a cada rato.
+  const base=(TBL.anual&&TBL.anual[id]!==undefined)?TBL.anual[id]:null;
+  const anual=(base===null)?null:(base+(hoy||0));
   const tmax=(e.t_max!=null)?Math.round(e.t_max)+'°':'—';
   const tmin=(e.t_min!=null)?Math.round(e.t_min)+'°':'—';
   const hr=(e.hr!=null)?e.hr+'%':'—';
@@ -616,9 +649,17 @@ function tblPanel(nombre, id){
     <div class="tbl-ptemp"><span class="tbl-ptmax">${tmax}</span><span class="tbl-ptmin">/ ${tmin} ${t('tbl_min')}</span></div>
     <div class="tbl-pgrid">
       <div class="tbl-pcell">💧 <b>${hr}</b> HR</div>
-      <div class="tbl-pcell">🌧 ${rain}</div>
       <div class="tbl-pcell">💨 <b>${v}</b> km/h ${tblDir(e.dir_viento)}</div>
       <div class="tbl-pcell">↗ ${t('tbl_gust')} <b>${vmax}</b></div>
+      <div class="tbl-pcell"></div>
+    </div>
+    <div class="tbl-rain">
+      <div class="tbl-rain__lbl">🌧 ${t('tbl_rain')}</div>
+      <div class="tbl-rain__row">
+        <div><span class="k">${t('tbl_rain_today')}</span><b>${azul(hoy,mm(hoy))}</b></div>
+        <div><span class="k">${t('tbl_rain_yest')}</span><b>${azul(ayer,mm(ayer))}</b></div>
+        <div><span class="k">${t('tbl_rain_year')}</span><b>${mm(anual)}</b></div>
+      </div>
     </div>
     ${st}
   </div>`;
@@ -646,12 +687,24 @@ function tblSearch(){
   }).join('');
 }
 function drawTablero(){
-  // Marca de tiempo
+  // Marca de tiempo + antigüedad del dato
   const ts=document.getElementById('tbl-ts');
   const fresh=document.getElementById('tbl-fresh');
   if(TBL.timestamp){
     ts.textContent=t('tbl_updated')+' '+TBL.timestamp.replace('T',' ');
-    fresh.textContent='';
+    // Antigüedad: el timestamp se genera en hora de Chile por el workflow
+    let mins=null;
+    try{
+      const d=new Date(TBL.timestamp);
+      if(!isNaN(d)) mins=Math.round((Date.now()-d.getTime())/60000);
+    }catch(e){}
+    if(mins!==null && mins>=0 && mins<48*60){
+      fresh.textContent=' · '+(mins<60
+        ? t('tbl_ago_min').replace('{n}',mins)
+        : t('tbl_ago_h').replace('{n}',Math.floor(mins/60)));
+    }else{
+      fresh.textContent='';
+    }
   }else{
     ts.textContent=t('tbl_nodata');fresh.textContent='';
   }
@@ -677,6 +730,7 @@ function renderAll(){
 }
 applyLang();
 renderAll();
+cargarCondiciones();
 </script>
 </body>
 </html>

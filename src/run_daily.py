@@ -53,7 +53,7 @@ def main():
     tablero_res, station_meta = None, {}
     try:
         from agromet_tablero import tablero, metadata_estaciones
-        print('1/4 Descargando condiciones actuales y metadata (mapa Agromet) ...')
+        print('1/5 Descargando condiciones actuales y metadata (mapa Agromet) ...')
         tablero_res = tablero()          # por defecto: las 47 de SPS Chile
         station_meta = metadata_estaciones(tablero_res)
         print(f'    {len(tablero_res.get("estaciones", {}))} estaciones en el tablero, '
@@ -70,7 +70,7 @@ def main():
     # --- 2. Extracción horaria ---
     try:
         from agromet_extractor import extract_all, AGROMET_ID
-        print(f'2/4 Extrayendo datos horarios de Agromet ({len(AGROMET_ID)} estaciones) ...')
+        print(f'2/5 Extrayendo datos horarios de Agromet ({len(AGROMET_ID)} estaciones) ...')
         station_dfs = extract_all(days=FETCH_DAYS)
     except SystemExit:
         raise
@@ -85,12 +85,37 @@ def main():
     print(f'    {len(station_dfs)} estaciones con datos horarios')
 
     # --- 3. Cálculo ---
-    print('3/4 Calculando las ocho enfermedades ...')
+    print('3/5 Calculando las ocho enfermedades ...')
     results = compute_all(station_dfs, window_days=DISPLAY_DAYS,
                           station_meta=station_meta)
 
-    # --- 4. Generación del artefacto ---
-    print('4/4 Generando el artefacto HTML bilingüe ...')
+    # --- 4. Acumulado anual de precipitación (1 de enero -> ayer) ---
+    # Se calcula una vez al día: es la parte cara. El tablero le suma la lluvia
+    # de hoy, que llega cada hora desde el mapa, y así la cifra queda al día.
+    anual = {}
+    if tablero_res:
+        try:
+            from agromet_extractor import acumulado_anual, AGROMET_ID
+            name2id_l = (tablero_res.get('name2id') or {})
+            print(f'4/5 Acumulado anual de lluvia ({len(name2id_l)} estaciones) ...')
+            for nombre, clave in name2id_l.items():
+                idp = AGROMET_ID.get(nombre)
+                if not idp:
+                    continue
+                mm = acumulado_anual(idp)
+                if mm is not None:
+                    anual[clave] = mm
+            print(f'    {len(anual)} estaciones con acumulado anual')
+        except Exception:
+            print('ADVERTENCIA: no se pudo calcular el acumulado anual:')
+            traceback.print_exc()
+        tablero_res['anual'] = anual
+        # Republicar el JSON ya con el acumulado
+        with open(os.path.join(out_dir, 'condiciones.json'), 'w', encoding='utf-8') as f:
+            json.dump(tablero_res, f, ensure_ascii=False, indent=1)
+
+    # --- 5. Generación del artefacto ---
+    print('5/5 Generando el artefacto HTML bilingüe ...')
     name2id = (tablero_res or {}).get('name2id') or {}
     out = build(results,
                 out_path=os.path.join(out_dir, 'index.html'),

@@ -480,7 +480,31 @@
   "Remove"
  ],
  "tbl_foot": [
-  "Condiciones del día vía red Agromet · se actualiza cada hora · © 2026 Winston Colvin — South Pacific Seeds Chile",
-  "Daily conditions via Agromet network · updated hourly · © 2026 Winston Colvin — South Pacific Seeds Chile"
+  "Condiciones del día vía red Agromet (INIA) · se actualiza cada hora · el pronóstico de enfermedades se recalcula a las 06:00 · © 2026 Winston Colvin — South Pacific Seeds Chile",
+  "Daily conditions via Agromet network (INIA) · updated hourly · disease forecast recomputed at 06:00 · © 2026 Winston Colvin — South Pacific Seeds Chile"
+ ],
+ "tbl_ago_min": [
+  "hace {n} min",
+  "{n} min ago"
+ ],
+ "tbl_ago_h": [
+  "hace {n} h",
+  "{n} h ago"
+ ],
+ "tbl_rain": [
+  "Agua caída (mm)",
+  "Rainfall (mm)"
+ ],
+ "tbl_rain_today": [
+  "hoy",
+  "today"
+ ],
+ "tbl_rain_yest": [
+  "ayer",
+  "yesterday"
+ ],
+ "tbl_rain_year": [
+  "año",
+  "year"
  ]
 }
