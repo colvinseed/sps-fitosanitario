@@ -100,8 +100,8 @@
   "DOWNCAST"
  ],
  "m_foot": [
-  "MILIONCAST2 (Gilles et al., 2004): Gompertz con parámetros gamma de temperatura, HR≥92% en oscuridad; log₁₀ esporangios/3 hojas. DOWNCAST (Jesperson y Sutton, 1987) con ventanas Tabla 1. Parámetros británicos sin recalibrar a Chile. Fase: esporulación. Referencial, no prescriptivo.",
-  "MILIONCAST2 (Gilles et al., 2004): Gompertz with gamma temperature parameters, RH≥92% in darkness; log₁₀ sporangia/3 leaves. DOWNCAST (Jesperson & Sutton, 1987) with Table 1 windows. British parameters not recalibrated to Chile. Phase: sporulation. Referential, not prescriptive."
+  "MILIONCAST2 (Gilles et al., 2004): Gompertz con parámetros gamma de temperatura, HR≥92% en oscuridad; log₁₀ esporangios/3 hojas. DOWNCAST alineado con la tabla de manejo integrado de SPS Tasmania (Craig, 2018): ventanas referidas a la salida/puesta de sol real de cada estación y fecha. Parámetros sin recalibrar a Chile. Fase: esporulación. Referencial, no prescriptivo.",
+  "MILIONCAST2 (Gilles et al., 2004): Gompertz with gamma temperature parameters, RH≥92% in darkness; log₁₀ sporangia/3 leaves. DOWNCAST aligned with the SPS Tasmania integrated management table (Craig, 2018): windows referenced to actual sunrise/sunset per station and date. Parameters not recalibrated to Chile. Phase: sporulation. Referential, not prescriptive."
  ],
  "region": [
   "Región",

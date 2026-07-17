@@ -20,7 +20,7 @@ Todos los modelos salvo la esporulación del mildiú dependen de ese proxy.
 Parámetros sin recalibrar a Chile — salidas referenciales, no prescriptivas.
 
 © 2026 Winston Colvin — South Pacific Seeds Chile
-Versión 1.7 · 2026-07-14 (Sclerotinia: variantes superficie/-10cm/aire)
+Versión 1.8 · 2026-07-17 (DOWNCAST alineado a tabla SPS Craig 2018; lluvia PP_SUM)
 """
 
 import math
@@ -41,18 +41,26 @@ STATIONS = {
 
 WET_HR = 90          # Umbral de HR (%) que cuenta como "hora de mojado foliar" (proxy)
 DARK_TWILIGHT = -6   # Crepúsculo civil (grados) para la ventana de oscuridad
+SUN_REAL = -0.833    # Salida/puesta de sol reales (refracción estándar), DOWNCAST
 UTC_OFFSET = -4      # Hora local de Chile central (aprox., para cálculo astronómico)
 
 
 # ===========================================================================
 # UTILIDADES COMUNES
 # ===========================================================================
-def sun_events(lat, lon, d):
-    """Devuelve (amanecer, atardecer) en hora local decimal para la fecha d."""
+def sun_events(lat, lon, d, alt_deg=None):
+    """
+    Devuelve (amanecer, atardecer) en hora local decimal para la fecha d.
+    alt_deg: altura del sol que define el evento. Por defecto DARK_TWILIGHT
+      (-6°, crepúsculo civil), que es la ventana de OSCURIDAD que usa
+      MILIONCAST. Para la salida/puesta de sol REALES —las que define la tabla
+      de DOWNCAST— se usa SUN_REAL (-0.833°, con refracción estándar).
+    """
+    alt = DARK_TWILIGHT if alt_deg is None else alt_deg
     N = d.timetuple().tm_yday
     lat_r = math.radians(lat)
     decl = math.radians(-23.44 * math.cos(math.radians(360 / 365 * (N + 10))))
-    cosH = ((math.sin(math.radians(DARK_TWILIGHT)) - math.sin(lat_r) * math.sin(decl))
+    cosH = ((math.sin(math.radians(alt)) - math.sin(lat_r) * math.sin(decl))
             / (math.cos(lat_r) * math.cos(decl)))
     cosH = min(1, max(-1, cosH))
     H = math.degrees(math.acos(cosH))
@@ -127,25 +135,94 @@ def milioncast(df, lat, lon):
 
 
 # ===========================================================================
-# MILDIÚ VELLOSO — DOWNCAST (comparación binaria)  ·  Tabla 1, Gilles et al. 2004
+# MILDIÚ VELLOSO — DOWNCAST (comparación binaria)
+# Alineado con la tabla de "Manejo integrado del mildiú velloso de la cebolla"
+# (Craig 2018, South Pacific Seeds Tasmania), lámina 2. Revisión 2026-07-17.
+#
+# CONDICIONES DE LA TABLA (traducción literal):
+#   Día previo a la producción de esporas
+#     · Temperatura horaria media entre la SALIDA y la PUESTA del sol < 24 °C.
+#     · Si la temperatura supera los 24 °C, no debe exceder:
+#         27 °C durante más de 8 horas,
+#         28 °C durante más de 4 horas, o
+#         29 °C durante más de 2 horas.
+#   Noche de producción de esporas
+#     · Temperatura horaria MEDIA entre la PUESTA y la SALIDA del sol: 4–24 °C.
+#     · A partir de 6 h tras la puesta de sol, HR ≥ 95 % durante al menos 4 h.
+#     · La precipitación entre 5 h tras la puesta y 1 h tras la salida del sol
+#       no debe superar los 2 mm (TOTAL del período).
+#
+# TODAS las ventanas son relativas al sol REAL, no a horas de reloj: en Chile,
+# entre Illapel (-30°) y Osorno (-40,6°), y entre junio y diciembre, la puesta
+# de sol se mueve varias horas. Por eso se calcula por estación y por fecha.
+#
+# DOS LECTURAS AMBIGUAS DE LA TABLA, resueltas por el criterio conservador:
+#   1. "Si la temperatura supera los 24 °C, no debe exceder..." se interpreta
+#      como requisito ADICIONAL a la media < 24 °C (Y lógico), no como
+#      alternativa. Un día de media 23 °C con seis horas a 30 °C no debería
+#      habilitar esporulación.
+#   2. "HR ≥ 95 % durante al menos 4 horas" se interpreta como 4 horas
+#      CONSECUTIVAS (lectura literal de "durante"), no como 4 horas sueltas.
+# Ambas hacen el modelo más restrictivo. Si se prefiere la lectura permisiva,
+# está señalado en el código dónde cambiarlo.
 # ===========================================================================
-def downcast(df):
+def downcast(df, lat, lon):
     """Predicción binaria DOWNCAST por día. Devuelve {fecha_str: bool}."""
+    df = df.copy()
+    df['dt'] = df['Date']
     res = {}
     dias = sorted(df['date'].unique())
     for i in range(1, len(dias)):
         d = dias[i]
-        cur = df[df['date'] == d]
-        prev = df[df['date'] == dias[i - 1]]
-        p1 = prev[(prev['hour'] >= 8) & (prev['hour'] <= 20)]
-        c1 = bool(len(p1) and p1['T'].mean() <= 24)
-        n = pd.concat([prev[prev['hour'] >= 20], cur[cur['hour'] <= 8]])
-        c2 = bool(len(n) and ((n['T'] >= 4) & (n['T'] <= 24)).all())
-        r3 = cur[(cur['hour'] >= 1) & (cur['hour'] <= 6)]
-        c3 = bool((r3['precip_h'] <= 1).all())
-        r4 = cur[(cur['hour'] >= 2) & (cur['hour'] <= 6)].sort_values('hour')
-        c4 = bool(len(r4) and (r4['HR'] >= 95).all())
-        res[str(d)] = bool(c1 and c2 and c3 and c4)
+        prev = dias[i - 1]
+        # Sol real (no crepúsculo): la tabla habla de salida/puesta del sol
+        _, puesta_prev = sun_events(lat, lon, prev, SUN_REAL)
+        salida_cur, _ = sun_events(lat, lon, d, SUN_REAL)
+        t_prev, t_cur = pd.Timestamp(prev), pd.Timestamp(d)
+        ts_puesta = t_prev + pd.Timedelta(hours=float(puesta_prev))
+        ts_salida = t_cur + pd.Timedelta(hours=float(salida_cur))
+
+        # --- Día previo: de la salida a la puesta de sol ---
+        salida_prev, _ = sun_events(lat, lon, prev, SUN_REAL)
+        dia = df[(df['dt'] >= t_prev + pd.Timedelta(hours=float(salida_prev))) &
+                 (df['dt'] <= ts_puesta)]
+        if not len(dia):
+            res[str(d)] = False
+            continue
+        c1 = bool(dia['T'].mean() < 24)
+        # Excepciones de duración por sobre 24 °C (horas acumuladas del día)
+        c1b = bool(int((dia['T'] > 27).sum()) <= 8 and
+                   int((dia['T'] > 28).sum()) <= 4 and
+                   int((dia['T'] > 29).sum()) <= 2)
+
+        # --- Noche: de la puesta a la salida de sol; MEDIA entre 4 y 24 °C ---
+        noche = df[(df['dt'] >= ts_puesta) & (df['dt'] <= ts_salida)]
+        if not len(noche):
+            res[str(d)] = False
+            continue
+        tm_noche = float(noche['T'].mean())
+        c2 = bool(4 <= tm_noche <= 24)
+
+        # --- Humedad: desde 6 h tras la puesta, ≥95 % por ≥4 h consecutivas ---
+        hr_win = df[(df['dt'] >= ts_puesta + pd.Timedelta(hours=6)) &
+                    (df['dt'] <= ts_salida)].sort_values('dt')
+        c3 = False
+        if len(hr_win):
+            racha = 0
+            for v in (hr_win['HR'] >= 95):
+                racha = racha + 1 if v else 0
+                if racha >= 4:
+                    c3 = True
+                    break
+            # Lectura permisiva (horas no consecutivas), si se prefiriera:
+            #   c3 = int((hr_win['HR'] >= 95).sum()) >= 4
+
+        # --- Lluvia: de 5 h tras la puesta a 1 h tras la salida; TOTAL ≤ 2 mm ---
+        lluvia = df[(df['dt'] >= ts_puesta + pd.Timedelta(hours=5)) &
+                    (df['dt'] <= ts_salida + pd.Timedelta(hours=1))]
+        c4 = bool(float(lluvia['precip_h'].sum()) <= 2) if len(lluvia) else True
+
+        res[str(d)] = bool(c1 and c1b and c2 and c3 and c4)
     return res
 
 
@@ -508,7 +585,7 @@ def compute_all(station_dfs, window_days=None, station_meta=None):
         wev = wet_events_by_day(df)
 
         # --- Mildiú ---
-        dc = downcast(df)
+        dc = downcast(df, cfg['lat'], cfg['lon'])
         mc = milioncast(df, cfg['lat'], cfg['lon'])
         dias = sorted(str(d) for d in df['date'].unique())[1:]
         m_rows = []
