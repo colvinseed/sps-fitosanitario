@@ -1,8 +1,5 @@
 name: Pronóstico fitosanitario diario SPS
 
-# Ejecuta el pipeline todos los días a las 10:00 UTC = 06:00 Chile (invierno, UTC-4).
-# En horario de verano (UTC-3) equivaldría a las 07:00 Chile; ajustar si se desea.
-on:
 # Disparo a las 10:07 UTC = 06:07 de Chile en INVIERNO (UTC-4).
 #
 # >>> REVISAR EN SEPTIEMBRE 2026 <<<
