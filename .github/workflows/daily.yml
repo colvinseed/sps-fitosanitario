@@ -3,8 +3,21 @@ name: Pronóstico fitosanitario diario SPS
 # Ejecuta el pipeline todos los días a las 10:00 UTC = 06:00 Chile (invierno, UTC-4).
 # En horario de verano (UTC-3) equivaldría a las 07:00 Chile; ajustar si se desea.
 on:
+# Disparo a las 10:07 UTC = 06:07 de Chile en INVIERNO (UTC-4).
+#
+# >>> REVISAR EN SEPTIEMBRE 2026 <<<
+# Chile pasa a horario de VERANO (UTC-3) a comienzos de septiembre. A partir de
+# ese cambio, 10:07 UTC pasa a ser las 07:07 de Chile, no las 06:07. Para
+# mantener 06:07 en verano, cambiar el cron a '7 9 * * *' (09:07 UTC).
+#
+# NOTA IMPORTANTE: este número es solo la hora en que GitHub ENCOLA la tarea, no
+# cuando la ejecuta. GitHub suele atrasar los cron (observado en este repo: de
+# 30 min a ~1.5 h, variable cada día), así que la corrida REAL cae algo después
+# de las 06:07. El minuto impar (07) ayuda a evitar la congestión de las horas
+# en punto.
+on:
   schedule:
-    - cron: '0 10 * * *'
+    - cron: '7 10 * * *'
   workflow_dispatch:        # permite dispararlo también a mano desde la pestaña Actions
 
 # Permite que el workflow escriba en el repositorio (para publicar el HTML)
@@ -44,5 +57,5 @@ jobs:
           git config user.email "bot@spschile.local"
           git add index.html condiciones.json
           # Commit solo si hubo cambios
-          git diff --staged --quiet || git commit -m "Actualización diaria $(date -u +%Y-%m-%d)"
+          git diff --staged --quiet || git commit -m "Actualización diaria $(date -u +%Y-%m-%d\ %H:%M) UTC"
           git push
