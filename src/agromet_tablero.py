@@ -2,7 +2,7 @@
 """
 agromet_tablero.py · Tablero de condiciones actuales (red Agromet/INIA)
 ========================================================================
-Versión 1.1 · 2026-07-20 · © 2026 Winston Colvin — South Pacific Seeds Chile
+Versión 1.2 · 2026-07-20 · © 2026 Winston Colvin — South Pacific Seeds Chile
 
 Baja el JSON del MAPA de agrometeorologia.cl (distinto del formulario de
 extracción horaria) que trae, para TODAS las estaciones del país en una sola
@@ -265,7 +265,9 @@ if __name__ == '__main__':
                   f"lluvia hoy {c['lluvia_hoy']}mm (ayer {c['lluvia_ayer']}mm), viento {c['viento']} km/h "
                   f"[{c['vigencia']}, {c['estado']}]")
         import os
-        os.makedirs(os.path.dirname(args.out), exist_ok=True)
+        _dir = os.path.dirname(args.out)
+        if _dir:                       # si --out es solo un nombre (raíz), dirname='' → no crear carpeta
+            os.makedirs(_dir, exist_ok=True)
         with open(args.out, 'w', encoding='utf-8') as f:
             json.dump(res, f, ensure_ascii=False, indent=1)
         print(f"\nGuardado en {args.out}")
