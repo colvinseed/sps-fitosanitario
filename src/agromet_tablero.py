@@ -2,7 +2,7 @@
 """
 agromet_tablero.py · Tablero de condiciones actuales (red Agromet/INIA)
 ========================================================================
-Versión 1.0 · 2026-07-14 · © 2026 Winston Colvin — South Pacific Seeds Chile
+Versión 1.1 · 2026-07-20 · © 2026 Winston Colvin — South Pacific Seeds Chile
 
 Baja el JSON del MAPA de agrometeorologia.cl (distinto del formulario de
 extracción horaria) que trae, para TODAS las estaciones del país en una sola
@@ -66,7 +66,10 @@ try:
     # nombre -> clave 'source:id'
     ESTACIONES_SPS = {nombre: _clave_agromet(idp)
                       for nombre, idp in AGROMET_ID.items()}
-except Exception:
+except Exception as e:
+    import sys
+    print(f'ADVERTENCIA: no se pudo importar AGROMET_ID ({e}); '
+          'la lista de estaciones quedará vacía.', file=sys.stderr)
     ESTACIONES_SPS = {}
 _HEADERS = {
     'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -267,4 +270,8 @@ if __name__ == '__main__':
             json.dump(res, f, ensure_ascii=False, indent=1)
         print(f"\nGuardado en {args.out}")
     else:
-        print('Sin datos (posible 403 por restricción de red del entorno).')
+        import sys
+        print('ERROR: la lista de estaciones quedó vacía. Verifique que '
+              'agromet_extractor (y pandas) se importe correctamente, o la '
+              'descarga de Agromet.', file=sys.stderr)
+        sys.exit(1)

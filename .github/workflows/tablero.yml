@@ -37,7 +37,7 @@ jobs:
           python-version: '3.12'
 
       - name: Instalar dependencias
-        run: pip install requests
+        run: pip install -r requirements.txt   # incluye pandas: agromet_extractor lo necesita para importar AGROMET_ID
 
       - name: Extraer condiciones actuales (mapa Agromet)
         run: python src/agromet_tablero.py --out condiciones.json
