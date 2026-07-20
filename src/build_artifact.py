@@ -75,7 +75,14 @@ def build(results, out_path=None, window_label=None, tablero=None, name2id=None)
         html = html[:s] + n2i_json + html[e:]
 
     # Inyectar fecha de actualización (hora local de Chile)
-    updated = datetime.now().strftime('%Y-%m-%d %H:%M')
+    # Fecha de actualización en hora de Chile (el build corre en servidores UTC).
+    # Reutiliza ahora_chile() del extractor del tablero para no duplicar la
+    # lógica de huso horario ni el pendiente de septiembre (horario de verano).
+    try:
+        from agromet_tablero import ahora_chile
+        updated = ahora_chile().strftime('%Y-%m-%d %H:%M')
+    except Exception:
+        updated = datetime.now().strftime('%Y-%m-%d %H:%M')
     html = html.replace('/*__UPDATED__*/', updated)
 
     out_path = out_path or os.path.join(ROOT, 'output', 'index.html')

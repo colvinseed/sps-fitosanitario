@@ -33,6 +33,7 @@
   .subpage.active{display:block}
   h2{font-size:17px;font-weight:600;margin-bottom:4px;color:var(--navy)}
   .sub{color:var(--mut);font-size:13px;margin-bottom:18px}
+  .upd-stamp{font-size:11px;color:#8a97a8;margin:-4px 0 12px;font-style:normal}
   .stations{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
   .stations button{flex:1;min-width:88px;background:#fff;border:1px solid var(--hair);padding:8px 6px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--ink)}
   .stations button.active{border:2px solid var(--blue);background:var(--lblue)}
@@ -211,6 +212,7 @@
 <div class="page" id="p1">
   <h2><span data-i18n="m_title"></span><span class="phase-tag phase-spor" data-i18n="phase_spor"></span></h2>
   <p class="sub"><i>Peronospora destructor</i> · <span data-i18n="m_sub"></span></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
   <button class="doclink" onclick="openDoc('mildew')" data-i18n="doclink"></button>
   <div class="chartbox"><div class="h" data-i18n="m_stack"></div><div class="cwrap" style="height:170px"><canvas id="m-stack"></canvas></div></div>
   <div class="stations" id="m-st"></div>
@@ -230,6 +232,7 @@
 <div class="page" id="p2">
   <h2><span data-i18n="alt_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
   <p class="sub" data-i18n="alt_sub"></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
   <div class="subnav"><button class="active" onclick="setSub(2,0)" data-i18n-html="alt_t0"></button><button onclick="setSub(2,1)" data-i18n-html="alt_t1"></button><button onclick="setSub(2,2)" data-i18n-html="alt_t2"></button></div>
   <div class="subpage active" id="s1-0">
     <div class="info" data-i18n-html="ap_info"></div>
@@ -262,6 +265,7 @@
 <div class="page" id="p3">
   <h2><span data-i18n="bot_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
   <p class="sub" data-i18n="bot_sub"></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
   <div class="subnav"><button class="active" onclick="setSub(3,0)" data-i18n-html="bot_t0"></button><button onclick="setSub(3,1)" data-i18n-html="bot_t1"></button></div>
   <div class="subpage active" id="s2-0">
     <div class="info" data-i18n-html="bs_info"></div>
@@ -286,6 +290,7 @@
 <div class="page" id="p4">
   <h2><span data-i18n="scl_title"></span><span class="phase-tag phase-idx" data-i18n="phase_idx"></span></h2>
   <p class="sub" data-i18n-html="scl_sub"></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
   <button class="doclink" onclick="openDoc('sclero')" data-i18n="doclink"></button>
   <div class="note note-strong" data-i18n-html="scl_note"></div>
   <div class="subnav" id="sc-variant" style="margin-bottom:14px">
@@ -305,6 +310,7 @@
 <div class="page" id="p5">
   <h2><span data-i18n="roya_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
   <p class="sub"><i>Puccinia allii</i> · <span data-i18n="roya_sub"></span></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
   <div class="info" data-i18n-html="roya_info"></div>
   <button class="doclink" onclick="openDoc('allii')" data-i18n="doclink"></button>
   <div class="stations" id="ra-st"></div>
@@ -318,6 +324,7 @@
 <div class="page" id="p6">
   <h2><span data-i18n="stemph_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
   <p class="sub"><i>Stemphylium vesicarium</i> · <span data-i18n="stemph_sub"></span></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
   <div class="info" data-i18n-html="stemph_info"></div>
   <button class="doclink" onclick="openDoc('stemph')" data-i18n="doclink"></button>
   <div class="stations" id="se-st"></div>
@@ -353,7 +360,7 @@ function applyLang(){
   document.getElementById('lang-es').classList.toggle('active',LANG==='es');
   document.getElementById('lang-en').classList.toggle('active',LANG==='en');
 }
-function setLang(l){LANG=l;applyLang();if(curDoc)openDoc(curDoc);else renderAll();}
+function setLang(l){LANG=l;applyLang();if(typeof setUpdStamps==='function')setUpdStamps();if(curDoc)openDoc(curDoc);else renderAll();}
 
 // --- Selector de estaciones: buscador + favoritas (localStorage) ---
 // Con redes grandes (47 estaciones) no se muestran 47 botones: se muestran las
@@ -691,8 +698,19 @@ function drawTablero(){
   const ts=document.getElementById('tbl-ts');
   const fresh=document.getElementById('tbl-fresh');
   if(TBL.timestamp){
-    ts.textContent=t('tbl_updated')+' '+TBL.timestamp.replace('T',' ');
-    // Antigüedad: el timestamp se genera en hora de Chile por el workflow
+    // Mostrar fecha y hora en zona de Chile. El timestamp trae su offset
+    // (ej. -04:00), así que se formatea explícitamente a esa zona.
+    let etiqueta=TBL.timestamp.replace('T',' ');
+    try{
+      const d=new Date(TBL.timestamp);
+      if(!isNaN(d)){
+        etiqueta=d.toLocaleString('es-CL',{timeZone:'America/Santiago',
+          year:'numeric',month:'2-digit',day:'2-digit',
+          hour:'2-digit',minute:'2-digit',hour12:false});
+      }
+    }catch(e){}
+    ts.textContent=t('tbl_updated')+' '+etiqueta;
+    // Antigüedad respecto de ahora
     let mins=null;
     try{
       const d=new Date(TBL.timestamp);
@@ -731,6 +749,22 @@ function renderAll(){
 applyLang();
 renderAll();
 cargarCondiciones();
+setUpdStamps();
+function setUpdStamps(){
+  // La fecha de actualización del pronóstico está en el pie (marca de la corrida
+  // diaria). Se replica en cada página de enfermedad para que sea visible sin
+  // volver a la portada. Es la MISMA fecha: las 8 enfermedades se calculan en la
+  // corrida de las 06:00, no por hora (eso es solo el tablero de inicio).
+  const stamp=document.querySelector('.stamp');
+  let fecha='';
+  if(stamp){
+    const m=stamp.textContent.match(/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
+    if(m)fecha=m[1];
+  }
+  document.querySelectorAll('.upd-stamp').forEach(el=>{
+    el.textContent=t('upd_label')+' '+fecha;
+  });
+}
 </script>
 </body>
 </html>

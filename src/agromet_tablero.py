@@ -27,7 +27,24 @@ import os
 import re
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+
+# Huso horario de Chile continental. En invierno es UTC-4; en verano (desde
+# comienzos de septiembre) pasa a UTC-3. El workflow corre en servidores UTC,
+# así que la marca de tiempo debe convertirse explícitamente, o mostraría la
+# hora UTC (4 h adelantada respecto de Chile en invierno).
+# >>> REVISAR EN SEPTIEMBRE 2026: cambiar a -3 para horario de verano. <<<
+CHILE_UTC_OFFSET = -4
+
+
+def ahora_chile():
+    """
+    Hora actual de Chile continental, CON marca de zona (tzinfo). Al serializar
+    con isoformat() incluye el offset (ej. '2026-07-20T10:03-04:00'), para que
+    cualquier navegador la interprete correctamente sin importar su ubicación.
+    """
+    tz_chile = timezone(timedelta(hours=CHILE_UTC_OFFSET))
+    return datetime.now(timezone.utc).astimezone(tz_chile)
 
 import requests
 
@@ -169,7 +186,7 @@ def tablero(ids_interes=None, session=None):
         if cond:
             out[clave] = cond
     return {
-        'timestamp': datetime.now().isoformat(timespec='minutes'),
+        'timestamp': ahora_chile().isoformat(timespec='minutes'),
         'estaciones': out,
         'name2id': name2id,
     }
