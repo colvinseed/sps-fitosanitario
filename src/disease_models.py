@@ -10,7 +10,7 @@ Fases modeladas (cada patógeno según lo que la literatura documenta mejor):
   - Alternaria porri (cebolla) ................... INFECCIÓN     (Suheri & Price 2000)
   - Alternaria dauci (zanahoria) ................. INFECCIÓN     (TOM-CAST / Pitblado 1992)
   - Alternaria brassicae (brásicas) ............. INFECCIÓN     (umbral T×mojado literatura)
-  - Botrytis squamosa (cebolla) ................. INFECCIÓN     (BOTCAST + Carisse 2012)
+  - Botrytis squamosa (cebolla) ................. INFECCIÓN     (favorabilidad T×mojado, clima fresco; cf. Sutton 1986 / Carisse 2012 — NO es BOTCAST acumulado)
   - Botrytis cinerea (moho gris polífago) ....... INFECCIÓN     (umbral T×mojado genérico)
   - Sclerotinia sclerotiorum (moho blanco) ...... ÍNDICE FAVORABILIDAD (asume inóculo en suelo)
   - Puccinia allii (roya cebolla/cebollín) ...... INFECCIÓN     (Furuya et al. 2009, Duthie/Weibull)
@@ -21,6 +21,7 @@ Parámetros sin recalibrar a Chile — salidas referenciales, no prescriptivas.
 
 © 2026 Winston Colvin — South Pacific Seeds Chile
 Versión 1.8 · 2026-07-17 (DOWNCAST alineado a tabla SPS Craig 2018; lluvia PP_SUM)
+Versión 1.9 · 2026-07-20 (B. squamosa recalibrado a clima fresco 10-20°C; etiqueta honesta)
 """
 
 import math
@@ -326,15 +327,24 @@ def stemphylium_dsv(T, wet):
 
 
 # ===========================================================================
-# BOTRYTIS SQUAMOSA (cebolla, infección)  ·  BOTCAST + Carisse 2012 (Weibull)
+# BOTRYTIS SQUAMOSA (cebolla) — ÍNDICE DE FAVORABILIDAD DE INFECCIÓN
+# ---------------------------------------------------------------------------
+# NO es BOTCAST: BOTCAST (Sutton et al. 1986) es un sistema acumulado (CDSI)
+# con componente de inóculo/esporulación anclado a emergencia. Aquí se modela
+# solo la capa de INFECCIÓN diaria (T × mojado), con mojado por proxy HR>=90%.
+# Umbrales térmicos según literatura de clima fresco: germinación óptima ~9°C
+# (Ellerbrock & Lorbeer 1977); sin crecimiento >30°C; infección más eficiente
+# ~10-20°C. Carisse (2008a, 2012): los indicadores más fiables de BLB usan
+# inóculo (trampa de esporas / conteo de lesiones), no solo clima.
+# v1.9 (2026-07-20): óptimo corregido de 18-22°C a 10-20°C (antes sesgado al calor).
 # ===========================================================================
 def bot_squamosa(T, wet):
-    if T is None or wet < 6 or T < 6 or T > 29:
+    if T is None or wet < 6 or T < 4 or T > 28:
         return 0.0
-    if 18 <= T <= 22:            tf = 1.0
-    elif 10 <= T < 25:           tf = 0.7
-    elif 6 <= T < 10 or 25 <= T < 27: tf = 0.4
-    else:                        tf = 0.15
+    if   10 <= T <= 20:                  tf = 1.0    # banda fresca óptima
+    elif  7 <= T < 10 or 20 < T <= 24:   tf = 0.7
+    elif  4 <= T <  7 or 24 < T <= 27:   tf = 0.35
+    else:                                tf = 0.15   # 27-28°C, casi nulo
     if wet < 12:   wf = 0.3
     elif wet < 24: wf = 0.6
     elif wet < 48: wf = 0.85
