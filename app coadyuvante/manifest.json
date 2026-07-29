@@ -1,0 +1,17 @@
+{
+  "name": "Receta Pesticidas y Coadyuvantes — SPS",
+  "short_name": "Receta SPS",
+  "description": "Clave de decisión de adyuvantes y generador de recetas de aplicación — South Pacific Seeds Chile.",
+  "lang": "es",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#14366E",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
