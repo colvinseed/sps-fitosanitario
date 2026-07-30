@@ -760,6 +760,32 @@ function renderAll(){
 applyLang();
 renderAll();
 cargarCondiciones();
+// --- Refresco automático del tablero al volver al primer plano ---------------
+// v1.0 · 30-07-2026 · © 2026 Winston Colvin — South Pacific Seeds Chile
+//
+// MOTIVO: cargarCondiciones() se ejecuta una sola vez, al cargar la página. En
+// un navegador eso basta, porque el usuario recarga. Pero instalada en la
+// pantalla de inicio la aplicación queda RESIDENTE: se abre, se manda al fondo
+// y se retoma horas después mostrando lo que bajó al abrirla, sin aviso.
+//
+// ALCANCE: esto reconsulta condiciones.json, que tablero.yml regenera en el
+// minuto 17 de cada hora. NO fuerza una extracción nueva desde Agromet: entre
+// dos corridas el archivo es el mismo y la marca de tiempo no se moverá.
+//
+// GUARDA: una consulta por minuto como máximo. visibilitychange y pageshow
+// pueden dispararse juntos al retomar la aplicación, y sin la guarda se harían
+// dos peticiones seguidas del mismo archivo.
+let _condUltima = Date.now();          // cargarCondiciones() acaba de correr arriba
+const _COND_MIN_MS = 60000;
+function refrescarCondiciones(){
+  if(document.visibilityState !== 'visible') return;
+  if(Date.now() - _condUltima < _COND_MIN_MS) return;
+  _condUltima = Date.now();            // se marca ANTES de pedir: si falla, igual espera
+  cargarCondiciones();
+}
+document.addEventListener('visibilitychange', refrescarCondiciones);
+window.addEventListener('pageshow', refrescarCondiciones);   // restauración desde bfcache (iOS)
+// ---------------------------------------------------------------------------
 setUpdStamps();
 function setUpdStamps(){
   // La fecha de actualización del pronóstico está en el pie (marca de la corrida
