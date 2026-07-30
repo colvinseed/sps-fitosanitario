@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de pronóstico fitosanitario — SPS Chile</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{--navy:#14366E;--blue:#1F5BA6;--lblue:#e8eff8;--lblue2:#f4f8fd;--ink:#1a2b40;--mut:#5a6b80;--hair:#d5dfec;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{max-width:100%;overflow-x:hidden}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:var(--lblue2);line-height:1.5;font-size:14px}
+  .wrap{max-width:920px;margin:0 auto;padding:0 16px 60px}
+  header{background:var(--navy);color:#fff;padding:20px 0}
+  header .wrap{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;padding-bottom:0}
+  header h1{font-size:20px;font-weight:600;margin-bottom:2px}
+  header p{font-size:13px;opacity:.85}
+  .htop{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .stamp{text-align:right;font-size:11px;opacity:.8;line-height:1.5}
+  .langtoggle{display:flex;border:1px solid rgba(255,255,255,.3);border-radius:6px;overflow:hidden}
+  .langtoggle button{background:transparent;border:none;color:rgba(255,255,255,.6);padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600}
+  .langtoggle button.active{background:#EF9F27;color:#14366E}
+  nav.pages{background:var(--navy);border-top:1px solid rgba(255,255,255,.15);position:sticky;top:0;z-index:20;overflow-x:auto}
+  nav.pages .wrap{display:flex;gap:0;padding-bottom:0;min-width:max-content}
+  nav.pages button{background:transparent;border:none;color:rgba(255,255,255,.7);padding:12px 16px;font-size:13.5px;cursor:pointer;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+  nav.pages button.active{color:#fff;border-bottom-color:#EF9F27}
+  .page{display:none;padding-top:24px}
+  .page.active{display:block}
+  .subnav{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+  .subnav button{flex:1;min-width:130px;background:#fff;border:1px solid var(--hair);color:var(--mut);padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500}
+  .subnav button.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .subpage{display:none}
+  .subpage.active{display:block}
+  h2{font-size:17px;font-weight:600;margin-bottom:4px;color:var(--navy)}
+  .sub{color:var(--mut);font-size:13px;margin-bottom:18px}
+  .upd-stamp{font-size:11px;color:#8a97a8;margin:-4px 0 12px;font-style:normal}
+  .stations{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+  .stations button{flex:1;min-width:88px;background:#fff;border:1px solid var(--hair);padding:8px 6px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--ink)}
+  .stations button.active{border:2px solid var(--blue);background:var(--lblue)}
+  /* Buscador de estaciones (para redes grandes, 47 estaciones) */
+  .stsearch{margin-bottom:18px}
+  .stsearch__bar{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .stsearch__input{flex:1;padding:9px 12px;border:1px solid var(--hair);border-radius:8px;font-size:13px;color:var(--ink)}
+  .stsearch__input:focus{outline:none;border-color:var(--blue)}
+  .stsearch__cur{font-size:12px;color:var(--blue);font-weight:600;white-space:nowrap}
+  .stsearch__results{display:flex;flex-wrap:wrap;gap:6px;max-height:0;overflow:hidden;transition:max-height .2s}
+  .stsearch__results.open{max-height:320px;overflow-y:auto;margin-bottom:4px}
+  .stsearch__item{display:flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--hair);padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12px;color:var(--ink)}
+  .stsearch__item:hover{background:var(--lblue)}
+  .stsearch__item.active{border:2px solid var(--blue);background:var(--lblue)}
+  .stsearch__item .reg{color:#8a97a8;font-size:10.5px}
+  .stsearch__star{cursor:pointer;font-size:14px;line-height:1;color:#d0d7e2;user-select:none}
+  .stsearch__star.on{color:#e6b400}
+  .stsearch__favs{display:flex;flex-wrap:wrap;gap:6px}
+  .stsearch__favlbl{font-size:11px;color:#8a97a8;width:100%;margin-bottom:2px}
+  .stsearch__empty{font-size:12px;color:#8a97a8;padding:4px 0}
+  /* --- Tablero de inicio (condiciones actuales) --- */
+  .tbl-sub{font-size:13px;color:var(--muted);margin:2px 0 0}
+  .tbl-fresh{color:var(--blue);font-weight:600}
+  .tbl-search{margin:16px 0 4px}
+  .tbl-search input{width:100%;padding:10px 14px;border:1px solid var(--hair);border-radius:9px;font-size:13.5px;color:var(--ink);background:#fff}
+  .tbl-search input:focus{outline:none;border-color:var(--blue)}
+  .tbl-results{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px;max-height:0;overflow:hidden;transition:max-height .2s}
+  .tbl-results.open{max-height:260px;overflow-y:auto;margin-bottom:8px}
+  .tbl-ritem{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--hair);padding:7px 11px;border-radius:8px;cursor:pointer;font-size:12.5px}
+  .tbl-ritem:hover{background:var(--lblue)}
+  .tbl-ritem .reg{color:#9aa7b8;font-size:10.5px}
+  .tbl-star{color:#d0d7e2;font-size:15px}.tbl-star.on{color:#e6b400}
+  .tbl-sectlbl{font-size:11.5px;color:var(--muted);font-weight:600;margin:16px 0 10px;letter-spacing:.4px}
+  .tbl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:12px}
+  .tbl-panel{background:#fff;border:1px solid var(--hair);border-radius:14px;padding:15px 16px}
+  .tbl-phead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+  .tbl-pname{font-size:14.5px;font-weight:600;color:var(--navy)}
+  .tbl-ploc{font-size:11px;color:var(--muted);margin-top:1px}
+  .tbl-premove{border:none;background:none;cursor:pointer;color:#e6b400;font-size:15px;line-height:1}
+  .tbl-ptemp{display:flex;align-items:baseline;gap:7px;margin-bottom:12px}
+  .tbl-ptmax{font-size:28px;font-weight:600;color:var(--ink)}
+  .tbl-ptmin{font-size:13px;color:var(--muted)}
+  .tbl-pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;font-size:12px;padding-top:10px;border-top:1px solid var(--hair)}
+  .tbl-pcell{display:flex;align-items:center;gap:5px;color:var(--muted)}
+  .tbl-pcell b{color:var(--ink);font-weight:600}.tbl-pcell .rain{color:var(--blue);font-weight:600}
+  .tbl-pstate{margin-top:10px;font-size:10.5px;display:inline-flex;align-items:center;gap:5px}
+  .tbl-pstate.on{color:#1d9e75}.tbl-pstate.off{color:#9aa7b8}
+  .tbl-dot{width:7px;height:7px;border-radius:50%}
+  .tbl-empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:13px;background:#fff;border:1px dashed var(--hair);border-radius:14px}
+  .tbl-rain{margin-top:10px;padding-top:9px;border-top:1px solid var(--hair)}
+  .tbl-rain__lbl{font-size:10.5px;color:var(--muted);margin-bottom:5px}
+  .tbl-rain__row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;text-align:center}
+  .tbl-rain__row .k{display:block;font-size:9.5px;color:#9aa7b8;margin-bottom:1px}
+  .tbl-rain__row b{font-size:12px;color:var(--ink);font-weight:600}
+  .tbl-rain__row .rain{color:var(--blue)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
+  .card{background:#fff;border-radius:10px;padding:12px;border:1px solid var(--hair)}
+  .card .lbl{font-size:12px;color:var(--mut);margin-bottom:4px}
+  .card .val{font-size:22px;font-weight:600}
+  .chartbox{background:#fff;border-radius:10px;border:1px solid var(--hair);padding:14px;margin-bottom:18px}
+  .chartbox .h{font-size:13px;font-weight:600;margin-bottom:2px;display:flex;justify-content:space-between}
+  .chartbox .r{font-size:12px;color:var(--mut);font-weight:400}
+  .cwrap{position:relative;width:100%;margin-top:8px}
+  .legend{display:flex;gap:14px;font-size:12px;color:var(--mut);flex-wrap:wrap;margin-top:8px}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:2px}
+  .note{background:#fdf6e9;border:1px solid #f0d9a8;border-radius:8px;padding:10px 12px;font-size:12px;color:#854F0B;margin-bottom:16px;line-height:1.5}
+  .note-strong{background:#fbeaea;border:1px solid #e8b4b4;color:#A32D2D}
+  .info{background:var(--lblue);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--navy);margin-bottom:16px;line-height:1.55}
+  .info b{font-weight:600}
+  .foot{font-size:11px;color:var(--mut);border-top:1px solid var(--hair);padding-top:12px;margin-top:18px;line-height:1.6}
+  .phase-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:6px}
+  .phase-spor{background:#e9dcc4;color:#854F0B}
+  .phase-inf{background:#f5d5d5;color:#A32D2D}
+  .phase-idx{background:#ddd9f0;color:#3C3489}
+  .doclink{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--blue);cursor:pointer;margin:-6px 0 16px;font-weight:500;background:none;border:none;padding:0}
+  .doclink:hover{text-decoration:underline}
+  .doclink::before{content:"\2139";display:inline-flex;width:16px;height:16px;border-radius:50%;background:var(--lblue);color:var(--blue);align-items:center;justify-content:center;font-size:11px}
+  .docview{display:none}
+  .docview.active{display:block}
+  .docback{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--blue);cursor:pointer;font-size:13px;font-weight:500;margin-bottom:16px;padding:0}
+  .docmeta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .docmeta .pill{font-size:11.5px;padding:3px 10px;border-radius:12px;background:var(--lblue);color:var(--navy);font-weight:500}
+  .docsec{background:#fff;border:1px solid var(--hair);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+  .docsec h3{font-size:13.5px;font-weight:600;color:var(--navy);margin-bottom:8px}
+  .docsec p{font-size:13px;color:var(--ink);line-height:1.6}
+  .docsec ul{margin:6px 0 0 2px;list-style:none}
+  .docsec li{font-size:12.5px;color:var(--ink);line-height:1.55;padding:4px 0 4px 16px;position:relative;border-bottom:1px solid #f0f4f9}
+  .docsec li:last-child{border-bottom:none}
+  .docsec li::before{content:"";position:absolute;left:2px;top:12px;width:5px;height:5px;border-radius:50%;background:var(--blue)}
+  table.vars{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.vars th{text-align:left;color:var(--mut);font-weight:500;padding:6px;border-bottom:1px solid var(--hair);font-size:11.5px}
+  table.vars td{padding:6px;border-bottom:1px solid #f0f4f9;vertical-align:top}
+  table.vars td:first-child{font-weight:500;white-space:nowrap;color:var(--navy)}
+  table.vars td:nth-child(2){color:var(--mut);white-space:nowrap;font-size:11.5px}
+  .refs{font-size:11.5px;color:var(--ink);line-height:1.6;counter-reset:r}
+  .refs div{padding:6px 0 6px 18px;border-bottom:1px solid #f0f4f9;position:relative}
+  .refs div:last-child{border-bottom:none}
+  .refs div::before{content:counter(r);counter-increment:r;position:absolute;left:0;top:6px;font-size:10px;color:var(--blue);font-weight:600}
+
+  /* ---- Responsivo móvil (iPhone / Android) ---- */
+  @media (max-width:600px){
+    .wrap{padding:0 12px 48px}
+    header .wrap{flex-direction:column;align-items:stretch;gap:10px}
+    header h1{font-size:17px}
+    header p{font-size:12px}
+    .htop{align-items:flex-start;flex-direction:row;justify-content:space-between;width:100%}
+    .stamp{text-align:left;font-size:10px}
+    nav.pages button{padding:11px 12px;font-size:12.5px}
+    .subnav{gap:5px}
+    .subnav button{min-width:0;flex:1 1 45%;font-size:12px;padding:8px 6px}
+    .stations{gap:5px}
+    .stations button{min-width:0;flex:1 1 30%;font-size:11.5px;padding:7px 4px}
+    .cards{grid-template-columns:repeat(2,1fr);gap:8px}
+    .card .val{font-size:19px}
+    h2{font-size:16px}
+    .cwrap{min-height:180px}
+    .legend{gap:10px;font-size:11px}
+    .info,.note{font-size:12px}
+    .docsec{padding:12px}
+    table.vars td,table.vars th{font-size:11.5px;padding:5px 4px}
+    /* la barra apilada horizontal necesita algo más de alto en móvil para las 5 estaciones */
+    #m-stack{min-height:150px}
+  }
+  @media (max-width:380px){
+    .cards{grid-template-columns:1fr 1fr}
+    .subnav button{flex:1 1 100%}
+    nav.pages{font-size:12px}
+  }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div><h1 data-i18n="app_title"></h1><p data-i18n="app_sub"></p></div>
+  <div class="htop">
+    <div class="langtoggle"><button id="lang-es" class="active" onclick="setLang('es')">ES</button><button id="lang-en" onclick="setLang('en')">EN</button></div>
+    <div class="stamp">v3.0 diario · /*__UPDATED__*/<br>© 2026 Winston Colvin<br>South Pacific Seeds Chile</div>
+  </div>
+</div></header>
+<nav class="pages"><div class="wrap">
+  <button class="active" onclick="setPage(0)" data-i18n="nav_inicio"></button>
+  <button onclick="setPage(1)" data-i18n="nav_mildew"></button>
+  <button onclick="setPage(2)" data-i18n="nav_alt"></button>
+  <button onclick="setPage(3)" data-i18n="nav_bot"></button>
+  <button onclick="setPage(4)" data-i18n="nav_scl"></button>
+  <button onclick="setPage(5)" data-i18n="nav_roya"></button>
+  <button onclick="setPage(6)" data-i18n="nav_stemph"></button>
+</div></nav>
+
+<div class="wrap">
+<div class="docview" id="docview">
+  <button class="docback" onclick="closeDoc()" data-i18n="docback"></button>
+  <h2 id="dv-title"></h2>
+  <div class="docmeta"><span class="pill" id="dv-patho"></span><span class="pill" id="dv-fase"></span><span class="pill" id="dv-tipo"></span></div>
+  <div class="docsec"><h3 data-i18n="dv_desc"></h3><p id="dv-desc"></p></div>
+  <div class="docsec"><h3 data-i18n="dv_vars"></h3><table class="vars"><thead><tr><th data-i18n="dv_var_h1"></th><th data-i18n="dv_var_h2"></th><th data-i18n="dv_var_h3"></th></tr></thead><tbody id="dv-vars"></tbody></table></div>
+  <div class="docsec"><h3 data-i18n="dv_logica"></h3><ul id="dv-logica"></ul></div>
+  <div class="docsec" id="dv-dc-box" style="display:none"><h3 data-i18n="dv_downcast"></h3><p id="dv-downcast"></p></div>
+  <div class="docsec"><h3 data-i18n="dv_sup"></h3><p id="dv-sup"></p></div>
+  <div class="docsec"><h3 data-i18n="dv_refs"></h3><div class="refs" id="dv-refs"></div></div>
+</div>
+
+<div id="allpages">
+<!-- P0 INICIO (Tablero de condiciones actuales) -->
+<div class="page active" id="p0">
+  <h2><span data-i18n="tbl_title"></span></h2>
+  <p class="tbl-sub"><span data-i18n="tbl_source"></span> · <span id="tbl-ts"></span> <span class="tbl-fresh" id="tbl-fresh"></span></p>
+  <div class="tbl-search"><input type="text" id="tbl-q" oninput="tblSearch()" placeholder=""></div>
+  <div class="tbl-results" id="tbl-results"></div>
+  <div class="tbl-sectlbl" data-i18n="tbl_mine"></div>
+  <div id="tbl-grid" class="tbl-grid"></div>
+  <div class="foot" data-i18n="tbl_foot" style="margin-top:20px"></div>
+</div>
+
+<!-- P0 MILDEW -->
+<div class="page" id="p1">
+  <h2><span data-i18n="m_title"></span><span class="phase-tag phase-spor" data-i18n="phase_spor"></span></h2>
+  <p class="sub"><i>Peronospora destructor</i> · <span data-i18n="m_sub"></span></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
+  <button class="doclink" onclick="openDoc('mildew')" data-i18n="doclink"></button>
+  <div class="chartbox"><div class="h" data-i18n="m_stack"></div><div class="cwrap" style="height:170px"><canvas id="m-stack"></canvas></div></div>
+  <div class="stations" id="m-st"></div>
+  <div class="chartbox"><div class="h"><span><span data-i18n="m_intensity"></span> · <span id="m-lbl"></span></span><span class="r" id="m-reg"></span></div>
+    <div class="cwrap" style="height:200px"><canvas id="m-ch"></canvas></div>
+    <div class="legend"><span><span class="dot" style="background:#BA7517"></span><span data-i18n="m_leg_mc"></span></span><span><span class="dot" style="background:#888780;border-radius:50%"></span><span data-i18n="m_leg_dc"></span></span><span><span style="width:14px;height:2px;background:#A32D2D;display:inline-block"></span><span data-i18n="m_leg_thr"></span></span></div></div>
+  <div class="note" id="m-note" style="display:none" data-i18n-html="m_note"></div>
+  <div class="cards">
+    <div class="card"><div class="lbl" data-i18n="m_c_strong"></div><div class="val" style="color:#854F0B" id="m-s">0</div></div>
+    <div class="card"><div class="lbl" data-i18n="m_c_mod"></div><div class="val" style="color:#BA7517" id="m-m">0</div></div>
+    <div class="card"><div class="lbl" data-i18n="m_c_low"></div><div class="val" style="color:#EF9F27" id="m-l">0</div></div>
+    <div class="card"><div class="lbl" data-i18n="m_c_dc"></div><div class="val" style="color:#888780" id="m-d">0</div></div></div>
+  <div class="foot" data-i18n="m_foot"></div>
+</div>
+
+<!-- P1 ALTERNARIA -->
+<div class="page" id="p2">
+  <h2><span data-i18n="alt_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
+  <p class="sub" data-i18n="alt_sub"></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
+  <div class="subnav"><button class="active" onclick="setSub(2,0)" data-i18n-html="alt_t0"></button><button onclick="setSub(2,1)" data-i18n-html="alt_t1"></button><button onclick="setSub(2,2)" data-i18n-html="alt_t2"></button></div>
+  <div class="subpage active" id="s1-0">
+    <div class="info" data-i18n-html="ap_info"></div>
+    <button class="doclink" onclick="openDoc('porri')" data-i18n="doclink"></button>
+    <div class="stations" id="ap-st"></div>
+    <div class="chartbox"><div class="h"><span><span data-i18n="sev_inf"></span> · <span id="ap-lbl"></span></span><span class="r" id="ap-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="ap-ch"></canvas></div>
+      <div class="legend"><span><span class="dot" style="background:#993C1D"></span><span data-i18n="sev_04"></span></span><span><span style="width:14px;height:2px;background:#888780;display:inline-block"></span><span data-i18n="wet_leg"></span></span></div></div>
+    <div class="cards"><div class="card"><div class="lbl" data-i18n="c_days_inf"></div><div class="val" style="color:#993C1D" id="ap-d">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_max"></div><div class="val" id="ap-mx">0</div></div><div class="card"><div class="lbl" data-i18n="c_wet_max"></div><div class="val" id="ap-w">0</div></div></div>
+  </div>
+  <div class="subpage" id="s1-1">
+    <div class="info" data-i18n-html="ad_info"></div>
+    <button class="doclink" onclick="openDoc('dauci')" data-i18n="doclink"></button>
+    <div class="stations" id="ad-st"></div>
+    <div class="chartbox"><div class="h"><span><span data-i18n="dsv_cum"></span> · <span id="ad-lbl"></span></span><span class="r" id="ad-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="ad-ch"></canvas></div>
+      <div class="legend"><span><span class="dot" style="background:#639922"></span><span data-i18n="dsv_cum"></span></span><span><span class="dot" style="background:#C0DD97"></span><span data-i18n="dsv_daily"></span></span><span><span style="width:14px;height:2px;background:#A32D2D;display:inline-block"></span><span data-i18n="dsv_thr"></span></span></div></div>
+    <div class="cards"><div class="card"><div class="lbl" data-i18n="c_dsv_tot"></div><div class="val" style="color:#3B6D11" id="ad-t">0</div></div><div class="card"><div class="lbl" data-i18n="c_days_dsv"></div><div class="val" id="ad-d">0</div></div><div class="card"><div class="lbl" data-i18n="c_over15"></div><div class="val" id="ad-th" style="font-size:16px;padding-top:4px">—</div></div></div>
+  </div>
+  <div class="subpage" id="s1-2">
+    <div class="info" data-i18n-html="ab_info"></div>
+    <button class="doclink" onclick="openDoc('bras')" data-i18n="doclink"></button>
+    <div class="stations" id="ab-st"></div>
+    <div class="chartbox"><div class="h"><span><span data-i18n="sev_inf"></span> · <span id="ab-lbl"></span></span><span class="r" id="ab-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="ab-ch"></canvas></div>
+      <div class="legend"><span><span class="dot" style="background:#534AB7"></span><span data-i18n="sev_04"></span></span><span><span style="width:14px;height:2px;background:#888780;display:inline-block"></span><span data-i18n="wet_leg"></span></span></div></div>
+    <div class="cards"><div class="card"><div class="lbl" data-i18n="c_days_inf"></div><div class="val" style="color:#534AB7" id="ab-d">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_max"></div><div class="val" id="ab-mx">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_cum"></div><div class="val" id="ab-sm">0</div></div></div>
+  </div>
+  <div class="foot" data-i18n="alt_foot"></div>
+</div>
+
+<!-- P2 BOTRYTIS -->
+<div class="page" id="p3">
+  <h2><span data-i18n="bot_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
+  <p class="sub" data-i18n="bot_sub"></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
+  <div class="subnav"><button class="active" onclick="setSub(3,0)" data-i18n-html="bot_t0"></button><button onclick="setSub(3,1)" data-i18n-html="bot_t1"></button></div>
+  <div class="subpage active" id="s2-0">
+    <div class="info" data-i18n-html="bs_info"></div>
+    <button class="doclink" onclick="openDoc('squamosa')" data-i18n="doclink"></button>
+    <div class="stations" id="bs-st"></div>
+    <div class="chartbox"><div class="h"><span><span data-i18n="sev_inf"></span> · <span id="bs-lbl"></span></span><span class="r" id="bs-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="bs-ch"></canvas></div>
+      <div class="legend"><span><span class="dot" style="background:#0F6E56"></span><span data-i18n="bs_leg"></span></span><span><span style="width:14px;height:2px;background:#888780;display:inline-block"></span><span data-i18n="wet_leg"></span></span></div></div>
+    <div class="cards"><div class="card"><div class="lbl" data-i18n="c_days_inf"></div><div class="val" style="color:#0F6E56" id="bs-d">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_max"></div><div class="val" id="bs-mx">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_cum"></div><div class="val" id="bs-sm">0</div></div></div>
+  </div>
+  <div class="subpage" id="s2-1">
+    <div class="info" data-i18n-html="bc_info"></div>
+    <button class="doclink" onclick="openDoc('cinerea')" data-i18n="doclink"></button>
+    <div class="stations" id="bc-st"></div>
+    <div class="chartbox"><div class="h"><span><span data-i18n="sev_inf"></span> · <span id="bc-lbl"></span></span><span class="r" id="bc-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="bc-ch"></canvas></div>
+      <div class="legend"><span><span class="dot" style="background:#993C1D"></span><span data-i18n="bc_leg"></span></span><span><span style="width:14px;height:2px;background:#888780;display:inline-block"></span><span data-i18n="wet_leg"></span></span></div></div>
+    <div class="cards"><div class="card"><div class="lbl" data-i18n="c_days_inf"></div><div class="val" style="color:#993C1D" id="bc-d">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_max"></div><div class="val" id="bc-mx">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_cum"></div><div class="val" id="bc-sm">0</div></div></div>
+  </div>
+  <div class="foot" data-i18n="bot_foot"></div>
+</div>
+
+<!-- P3 SCLEROTINIA -->
+<div class="page" id="p4">
+  <h2><span data-i18n="scl_title"></span><span class="phase-tag phase-idx" data-i18n="phase_idx"></span></h2>
+  <p class="sub" data-i18n-html="scl_sub"></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
+  <button class="doclink" onclick="openDoc('sclero')" data-i18n="doclink"></button>
+  <div class="note note-strong" data-i18n-html="scl_note"></div>
+  <div class="subnav" id="sc-variant" style="margin-bottom:14px">
+    <button class="active" onclick="setSclVar('s10')" data-i18n="scl_v_s10"></button>
+    <button onclick="setSclVar('sup')" data-i18n="scl_v_sup"></button>
+    <button onclick="setSclVar('aire')" data-i18n="scl_v_air"></button>
+  </div>
+  <div class="stations" id="sc-st"></div>
+  <div class="chartbox"><div class="h"><span><span data-i18n="scl_idx"></span> · <span id="sc-lbl"></span></span><span class="r" id="sc-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="sc-ch"></canvas></div>
+    <div class="legend"><span><span class="dot" style="background:#534AB7"></span><span data-i18n="scl_leg_idx"></span></span><span><span class="dot" style="background:#CECBF6"></span><span data-i18n="scl_leg_ready"></span></span></div></div>
+  <div class="cards"><div class="card"><div class="lbl" data-i18n="scl_c_days"></div><div class="val" style="color:#3C3489" id="sc-d">0</div></div><div class="card"><div class="lbl" data-i18n="scl_c_max"></div><div class="val" id="sc-mx">0</div></div><div class="card"><div class="lbl" data-i18n="scl_c_rm"></div><div class="val" id="sc-rm">0</div></div></div>
+  <div class="info" data-i18n-html="scl_read"></div>
+  <div class="foot" data-i18n="scl_foot"></div>
+</div>
+
+<!-- P4 ROYA (Puccinia allii) -->
+<div class="page" id="p5">
+  <h2><span data-i18n="roya_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
+  <p class="sub"><i>Puccinia allii</i> · <span data-i18n="roya_sub"></span></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
+  <div class="info" data-i18n-html="roya_info"></div>
+  <button class="doclink" onclick="openDoc('allii')" data-i18n="doclink"></button>
+  <div class="stations" id="ra-st"></div>
+  <div class="chartbox"><div class="h"><span><span data-i18n="sev_inf"></span> · <span id="ra-lbl"></span></span><span class="r" id="ra-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="ra-ch"></canvas></div>
+    <div class="legend"><span><span class="dot" style="background:#C05621"></span><span data-i18n="roya_leg"></span></span><span><span style="width:14px;height:2px;background:#888780;display:inline-block"></span><span data-i18n="wet_leg"></span></span></div></div>
+  <div class="cards"><div class="card"><div class="lbl" data-i18n="c_days_inf"></div><div class="val" style="color:#C05621" id="ra-d">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_max"></div><div class="val" id="ra-mx">0</div></div><div class="card"><div class="lbl" data-i18n="c_sev_cum"></div><div class="val" id="ra-sm">0</div></div></div>
+  <div class="foot" data-i18n="roya_foot"></div>
+</div>
+
+<!-- P5 STEMPHYLIUM (STEMcast 2.0) -->
+<div class="page" id="p6">
+  <h2><span data-i18n="stemph_title"></span><span class="phase-tag phase-inf" data-i18n="phase_inf"></span></h2>
+  <p class="sub"><i>Stemphylium vesicarium</i> · <span data-i18n="stemph_sub"></span></p>
+  <p class="upd-stamp" data-i18n-pre="upd_label"></p>
+  <div class="info" data-i18n-html="stemph_info"></div>
+  <button class="doclink" onclick="openDoc('stemph')" data-i18n="doclink"></button>
+  <div class="stations" id="se-st"></div>
+  <div class="chartbox"><div class="h"><span><span data-i18n="dsv_cum"></span> · <span id="se-lbl"></span></span><span class="r" id="se-reg"></span></div><div class="cwrap" style="height:190px"><canvas id="se-ch"></canvas></div>
+    <div class="legend"><span><span class="dot" style="background:#8A6D1F"></span><span data-i18n="dsv_cum"></span></span><span><span class="dot" style="background:#DCC98A"></span><span data-i18n="dsv_daily"></span></span><span><span style="width:14px;height:2px;background:#A32D2D;display:inline-block"></span><span data-i18n="stemph_thr"></span></span></div></div>
+  <div class="cards"><div class="card"><div class="lbl" data-i18n="c_dsv_tot"></div><div class="val" style="color:#6E5518" id="se-t">0</div></div><div class="card"><div class="lbl" data-i18n="c_days_dsv"></div><div class="val" id="se-d">0</div></div><div class="card"><div class="lbl" data-i18n="stemph_c_thr"></div><div class="val" id="se-th" style="font-size:16px;padding-top:4px">—</div></div></div>
+  <div class="foot" data-i18n="stemph_foot"></div>
+</div>
+</div>
+</div>
+
+<script>
+const D = /*__DATA__*/{}/*__END__*/;
+// ORDER se deriva de las estaciones presentes en los datos (soporta 5 o 47).
+// Se toma la unión de estaciones de todas las categorías, preservando el orden
+// de inserción del backend (norte a sur).
+const ORDER=(function(){
+  const seen=[],set=new Set();
+  ['mildew','alternaria','botrytis','roya','stemph'].forEach(cat=>{
+    if(D[cat])Object.keys(D[cat]).forEach(n=>{if(!set.has(n)){set.add(n);seen.push(n);}});
+  });
+  return seen.length?seen:['Chocalán','Talagante','Placilla','Peor es Nada','San Rafael'];
+})();
+const ch={};let sel=(function(){try{const f=JSON.parse(localStorage.getItem('sps_fav_stations')||'[]');if(Array.isArray(f)&&f.length&&ORDER.includes(f[0]))return f[0];}catch(e){}return ORDER[0]||'San Rafael';})();let curPage=0,curSub=[0,0,0,0,0,0,0];let LANG='es';let curDoc=null;let curSclVar='s10';
+const U=D.ui;
+function t(k){return U[k]?U[k][LANG==='es'?0:1]:k;}
+
+function applyLang(){
+  document.documentElement.lang=LANG;
+  document.title=(LANG==='es'?'Sistema de pronóstico fitosanitario':'Phytosanitary forecasting system')+' — SPS Chile';
+  document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.getAttribute('data-i18n'));});
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{el.innerHTML=t(el.getAttribute('data-i18n-html'));});
+  document.getElementById('lang-es').classList.toggle('active',LANG==='es');
+  document.getElementById('lang-en').classList.toggle('active',LANG==='en');
+}
+function setLang(l){LANG=l;applyLang();if(typeof setUpdStamps==='function')setUpdStamps();if(curDoc)openDoc(curDoc);else renderAll();}
+
+// --- Selector de estaciones: buscador + favoritas (localStorage) ---
+// Con redes grandes (47 estaciones) no se muestran 47 botones: se muestran las
+// FAVORITAS del usuario (guardadas en su navegador) + un buscador por nombre.
+function getFavs(){
+  try{const f=JSON.parse(localStorage.getItem('sps_fav_stations')||'[]');
+    return Array.isArray(f)?f:[];}catch(e){return [];}
+}
+function setFavs(arr){
+  try{localStorage.setItem('sps_fav_stations',JSON.stringify(arr));}catch(e){}
+}
+function toggleFav(name){
+  let f=getFavs();
+  if(f.includes(name))f=f.filter(x=>x!==name);else f.push(name);
+  setFavs(f);renderAll();
+}
+function stRegion(n){
+  // región desde los datos ya cargados (cualquier categoría sirve)
+  for(const cat of ['mildew','alternaria','botrytis','roya','stemph']){
+    if(D[cat]&&D[cat][n]&&D[cat][n].region)return D[cat][n].region;
+  }
+  return '';
+}
+function mkSt(id){
+  const c=document.getElementById(id);if(!c)return;
+  const all=ORDER.slice();
+  const favs=getFavs().filter(n=>all.includes(n));
+  // Si la estación seleccionada no está, usar la primera favorita o la primera
+  if(!all.includes(sel))sel=favs[0]||all[0];
+  c.innerHTML='';
+  const wrap=document.createElement('div');wrap.className='stsearch';
+
+  // Barra: input + estación actual
+  const bar=document.createElement('div');bar.className='stsearch__bar';
+  const inp=document.createElement('input');inp.className='stsearch__input';
+  inp.type='text';inp.placeholder=t('st_search_ph');inp.value='';
+  const cur=document.createElement('span');cur.className='stsearch__cur';
+  cur.textContent='📍 '+sel;
+  bar.appendChild(inp);bar.appendChild(cur);wrap.appendChild(bar);
+
+  // Resultados de búsqueda (ocultos hasta escribir)
+  const res=document.createElement('div');res.className='stsearch__results';
+  wrap.appendChild(res);
+
+  // Favoritas (siempre visibles)
+  const favBox=document.createElement('div');favBox.className='stsearch__favs';
+  function renderFavs(){
+    favBox.innerHTML='';
+    const lbl=document.createElement('div');lbl.className='stsearch__favlbl';
+    lbl.textContent=t('st_favs');favBox.appendChild(lbl);
+    if(!favs.length){
+      const e=document.createElement('div');e.className='stsearch__empty';
+      e.textContent=t('st_nofav');favBox.appendChild(e);return;
+    }
+    favs.forEach(n=>favBox.appendChild(mkItem(n)));
+  }
+  function mkItem(n){
+    const it=document.createElement('div');
+    it.className='stsearch__item'+(n===sel?' active':'');
+    const star=document.createElement('span');
+    star.className='stsearch__star'+(getFavs().includes(n)?' on':'');
+    star.textContent=getFavs().includes(n)?'★':'☆';
+    star.onclick=(e)=>{e.stopPropagation();toggleFav(n);};
+    const txt=document.createElement('span');
+    const reg=stRegion(n);
+    txt.innerHTML=n+(reg?' <span class="reg">'+reg+'</span>':'');
+    it.appendChild(star);it.appendChild(txt);
+    it.onclick=()=>{sel=n;renderAll();};
+    return it;
+  }
+  inp.oninput=()=>{
+    const q=inp.value.trim().toLowerCase();
+    res.innerHTML='';
+    if(!q){res.classList.remove('open');return;}
+    const hits=all.filter(n=>n.toLowerCase().includes(q)||stRegion(n).toLowerCase().includes(q));
+    if(!hits.length){res.classList.add('open');
+      const e=document.createElement('div');e.className='stsearch__empty';
+      e.textContent=t('st_noresult');res.appendChild(e);return;}
+    hits.slice(0,40).forEach(n=>res.appendChild(mkItem(n)));
+    res.classList.add('open');
+  };
+  renderFavs();wrap.appendChild(favBox);
+  c.appendChild(wrap);
+}
+function setPage(p){curPage=p;document.querySelectorAll('nav.pages button').forEach((b,i)=>b.classList.toggle('active',i===p));document.querySelectorAll('.page').forEach((pg,i)=>pg.classList.toggle('active',i===p));renderAll();}
+function setSub(page,s){curSub[page]=s;const pg=document.getElementById('p'+page);pg.querySelectorAll('.subnav button').forEach((b,i)=>b.classList.toggle('active',i===s));pg.querySelectorAll('.subpage').forEach((sp,i)=>sp.classList.toggle('active',i===s));renderAll();}
+const dstroy=k=>{if(ch[k]){ch[k].destroy();delete ch[k];}};
+
+function openDoc(key){
+  curDoc=key;
+  const d=(LANG==='es'?D.docs_es:D.docs_en)[key];if(!d)return;
+  document.getElementById('dv-title').textContent=d.titulo;
+  document.getElementById('dv-patho').textContent=t('dv_patho')+': '+d.patogeno;
+  document.getElementById('dv-fase').textContent=t('dv_fase')+': '+d.fase;
+  document.getElementById('dv-tipo').textContent=d.tipo;
+  document.getElementById('dv-desc').textContent=d.desc;
+  document.getElementById('dv-vars').innerHTML=d.vars.map(v=>'<tr><td>'+v[0]+'</td><td>'+v[1]+'</td><td>'+v[2]+'</td></tr>').join('');
+  document.getElementById('dv-logica').innerHTML=d.logica.map(x=>'<li>'+x+'</li>').join('');
+  const dcbox=document.getElementById('dv-dc-box');
+  if(d.downcast){dcbox.style.display='block';document.getElementById('dv-downcast').textContent=d.downcast;}else dcbox.style.display='none';
+  document.getElementById('dv-sup').textContent=d.supuestos;
+  document.getElementById('dv-refs').innerHTML=d.refs.map(r=>'<div>'+r+'</div>').join('');
+  document.querySelectorAll('#docview [data-i18n]').forEach(el=>{el.textContent=t(el.getAttribute('data-i18n'));});
+  document.getElementById('allpages').style.display='none';
+  document.querySelector('nav.pages').style.display='none';
+  document.getElementById('docview').classList.add('active');window.scrollTo(0,0);
+}
+function closeDoc(){curDoc=null;document.getElementById('docview').classList.remove('active');document.getElementById('allpages').style.display='block';document.querySelector('nav.pages').style.display='block';window.scrollTo(0,0);}
+
+function barLine(cid,key,labels,bars,barCol,line,lineMax,yTitle,tip){
+  dstroy(key);
+  ch[key]=new Chart(document.getElementById(cid),{data:{labels,datasets:[
+    {type:'bar',data:bars,backgroundColor:barCol,borderRadius:2,barPercentage:0.9,categoryPercentage:0.95,yAxisID:'y',order:2},
+    {type:'line',data:line,borderColor:'#888780',borderWidth:1,pointRadius:0,yAxisID:'y2',order:1,tension:0.3}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+      scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},
+        y:{min:0,max:4,position:'left',title:{display:true,text:yTitle,font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}},
+        y2:{min:0,max:lineMax,position:'right',title:{display:true,text:t('wet_h'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{display:false}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>labels[i[0].dataIndex],label:tip}}}}});
+}
+
+function drawMildewStack(){
+  // Mostrar solo las estaciones FAVORITAS. Si no hay favoritas, mostrar la
+  // estación seleccionada actualmente (para no dejar el gráfico vacío).
+  let subset=getFavs().filter(x=>ORDER.includes(x)&&D.mildew[x]);
+  if(!subset.length)subset=(D.mildew[sel]?[sel]:ORDER.slice(0,5));
+  const s=subset.map(x=>D.mildew[x].strong),m=subset.map(x=>D.mildew[x].mod),l=subset.map(x=>D.mildew[x].low),n=subset.map(x=>D.mildew[x].nulo);
+  dstroy('stack');
+  ch.stack=new Chart(document.getElementById('m-stack'),{type:'bar',
+    data:{labels:subset,datasets:[{label:t('lvl_strong'),data:s,backgroundColor:'#854F0B',stack:'s'},{label:t('lvl_mod'),data:m,backgroundColor:'#BA7517',stack:'s'},{label:t('lvl_low'),data:l,backgroundColor:'#EF9F27',stack:'s'},{label:t('lvl_null'),data:n,backgroundColor:'#D3D1C7',stack:'s'}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,
+      scales:{x:{stacked:true,max:(D.mildew[subset[0]]?D.mildew[subset[0]].data.length:7),grid:{color:'#eef2f7'},ticks:{font:{size:10},color:'#5a6b80'}},y:{stacked:true,grid:{display:false},ticks:{font:{size:11},color:'#1a2b40'}}},
+      plugins:{legend:{position:'bottom',labels:{boxWidth:10,boxHeight:10,font:{size:11},color:'#5a6b80',padding:8}}}}});
+}
+function drawMildew(){
+  const st=sel,d=D.mildew[st].data;
+  document.getElementById('m-lbl').textContent=st;document.getElementById('m-reg').textContent=t('region')+': '+D.mildew[st].region;
+  document.getElementById('m-s').textContent=D.mildew[st].strong;document.getElementById('m-m').textContent=D.mildew[st].mod;
+  document.getElementById('m-l').textContent=D.mildew[st].low;document.getElementById('m-d').textContent=D.mildew[st].ndc;
+  document.getElementById('m-note').style.display=(D.mildew[st].strong+D.mildew[st].mod+D.mildew[st].low===0)?'block':'none';
+  const cols=d.map(e=>e.mc>4?'#854F0B':e.mc>2?'#BA7517':e.mc>0?'#EF9F27':'#e5e0d4');
+  dstroy('m');
+  ch.m=new Chart(document.getElementById('m-ch'),{data:{labels:d.map(e=>e.f.slice(5)),datasets:[
+    {type:'bar',data:d.map(e=>e.mc),backgroundColor:cols,borderRadius:2,barPercentage:0.9,categoryPercentage:0.95,order:2},
+    {type:'scatter',data:d.map(e=>e.dc===1?0.3:null),backgroundColor:'#888780',pointRadius:3,order:1}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+      scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,max:6,title:{display:true,text:t('m_leg_mc'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>{const e=d[i.dataIndex];if(i.datasetIndex===1)return e.dc===1?'DOWNCAST: '+t('tt_pos'):'';const lv=e.mc>4?t('lvl_strong'):e.mc>2?t('lvl_mod'):e.mc>0?t('lvl_low'):t('lvl_null');let s='MILIONCAST2: '+e.mc.toFixed(1)+' ('+lv+')';if(e.tm!=null)s+=' · '+e.tm+'°C';return s;}}}}},
+    plugins:[{afterDraw:c=>{const y=c.scales.y.getPixelForValue(4),ctx=c.ctx;ctx.save();ctx.strokeStyle='#A32D2D';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(c.scales.x.left,y);ctx.lineTo(c.scales.x.right,y);ctx.stroke();ctx.restore();}}]});
+}
+function drawAlt(sub){
+  const st=sel,d=D.alternaria[st].data,lb=d.map(e=>e.f.slice(5));
+  if(sub===0){document.getElementById('ap-lbl').textContent=st;document.getElementById('ap-reg').textContent=t('region')+': '+D.alternaria[st].region;
+    document.getElementById('ap-d').textContent=d.filter(e=>e.porri>0).length;document.getElementById('ap-mx').textContent=Math.max(...d.map(e=>e.porri)).toFixed(1);document.getElementById('ap-w').textContent=Math.max(...d.map(e=>e.wet));
+    barLine('ap-ch','ap',lb,d.map(e=>e.porri),'#993C1D',d.map(e=>e.wet),24,t('sev_04'),i=>{const e=d[i.dataIndex];return i.datasetIndex===0?t('sev_04')+': '+e.porri+(e.tm!=null?' · '+e.tm+'°C':''):t('wet_h')+': '+e.wet;});
+  }else if(sub===1){document.getElementById('ad-lbl').textContent=st;document.getElementById('ad-reg').textContent=t('region')+': '+D.alternaria[st].region;
+    let acc=0;const cum=d.map(e=>{acc+=e.dauci;return acc;});
+    document.getElementById('ad-t').textContent=acc;document.getElementById('ad-d').textContent=d.filter(e=>e.dauci>0).length;
+    document.getElementById('ad-th').textContent=acc>=15?t('yes'):t('no');document.getElementById('ad-th').style.color=acc>=15?'#A32D2D':'#3B6D11';
+    dstroy('ad');
+    ch.ad=new Chart(document.getElementById('ad-ch'),{data:{labels:lb,datasets:[
+      {type:'line',data:cum,borderColor:'#639922',backgroundColor:'rgba(99,153,34,0.08)',borderWidth:2,pointRadius:0,fill:true,yAxisID:'y',order:1,tension:0.2},
+      {type:'bar',data:d.map(e=>e.dauci),backgroundColor:'#C0DD97',yAxisID:'y2',order:2,barPercentage:0.9,categoryPercentage:0.95}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+        scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,position:'left',title:{display:true,text:t('dsv_cum'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}},y2:{min:0,max:4,position:'right',title:{display:true,text:t('dsv_daily'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{display:false}}},
+        plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>i.datasetIndex===0?t('dsv_cum')+': '+cum[i.dataIndex]:t('dsv_daily')+': '+d[i.dataIndex].dauci+(d[i.dataIndex].tm!=null?' · '+d[i.dataIndex].tm+'°C':'')}}}},
+      plugins:[{afterDraw:c=>{const y=c.scales.y.getPixelForValue(15),ctx=c.ctx;ctx.save();ctx.strokeStyle='#A32D2D';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(c.scales.x.left,y);ctx.lineTo(c.scales.x.right,y);ctx.stroke();ctx.restore();}}]});
+  }else{document.getElementById('ab-lbl').textContent=st;document.getElementById('ab-reg').textContent=t('region')+': '+D.alternaria[st].region;
+    document.getElementById('ab-d').textContent=d.filter(e=>e.bras>0).length;document.getElementById('ab-mx').textContent=Math.max(...d.map(e=>e.bras));document.getElementById('ab-sm').textContent=d.reduce((a,e)=>a+e.bras,0);
+    barLine('ab-ch','ab',lb,d.map(e=>e.bras),'#534AB7',d.map(e=>e.wet),24,t('sev_04'),i=>{const e=d[i.dataIndex];return i.datasetIndex===0?t('sev_04')+': '+e.bras+(e.tm!=null?' · '+e.tm+'°C':''):t('wet_h')+': '+e.wet;});}
+}
+function drawBot(sub){
+  const st=sel,d=D.botrytis[st].data,lb=d.map(e=>e.f.slice(5));
+  if(sub===0){document.getElementById('bs-lbl').textContent=st;document.getElementById('bs-reg').textContent=t('region')+': '+D.botrytis[st].region;
+    document.getElementById('bs-d').textContent=d.filter(e=>e.squa>0).length;document.getElementById('bs-mx').textContent=Math.max(...d.map(e=>e.squa)).toFixed(1);document.getElementById('bs-sm').textContent=d.reduce((a,e)=>a+e.squa,0).toFixed(1);
+    barLine('bs-ch','bs',lb,d.map(e=>e.squa),'#0F6E56',d.map(e=>e.wet),84,t('sev_04'),i=>{const e=d[i.dataIndex];return i.datasetIndex===0?t('sev_04')+': '+e.squa+(e.tm!=null?' · '+e.tm+'°C':''):t('wet_h')+': '+e.wet;});
+  }else{document.getElementById('bc-lbl').textContent=st;document.getElementById('bc-reg').textContent=t('region')+': '+D.botrytis[st].region;
+    document.getElementById('bc-d').textContent=d.filter(e=>e.cin>0).length;document.getElementById('bc-mx').textContent=Math.max(...d.map(e=>e.cin)).toFixed(1);document.getElementById('bc-sm').textContent=d.reduce((a,e)=>a+e.cin,0).toFixed(1);
+    barLine('bc-ch','bc',lb,d.map(e=>e.cin),'#993C1D',d.map(e=>e.wet),84,t('sev_04'),i=>{const e=d[i.dataIndex];return i.datasetIndex===0?t('sev_04')+': '+e.cin+(e.tm!=null?' · '+e.tm+'°C':''):t('wet_h')+': '+e.wet;});}
+}
+function drawSclero(){
+  const st=sel,d=D.botrytis[st].data,lb=d.map(e=>e.f.slice(5));
+  document.getElementById('sc-lbl').textContent=st;document.getElementById('sc-reg').textContent=t('region')+': '+D.botrytis[st].region;
+  // Variantes disponibles según los datos de esta estación
+  const has={s10:d.length&&d[0].scl_s10!==undefined,
+             sup:d.length&&d[0].scl_sup!==undefined,
+             aire:d.length&&d[0].scl_air!==undefined};
+  const btns=document.querySelectorAll('#sc-variant button');
+  const keys=['s10','sup','aire'];
+  keys.forEach((k,i)=>{if(btns[i])btns[i].style.display=has[k]?'':'none';});
+  // Si la variante actual no existe, caer a la primera disponible
+  if(!has[curSclVar])curSclVar=keys.find(k=>has[k])||'aire';
+  btns.forEach((b,i)=>b.classList.toggle('active',keys[i]===curSclVar));
+  const v=curSclVar;
+  const key=(v==='sup')?'scl_sup':(v==='aire')?'scl_air':'scl_s10';
+  const idxOf=e=>(e[key]!==undefined?e[key]:e.scl)||0;
+  const rdyOf=e=>(e[key+'_r']!==undefined?e[key+'_r']:e.scl_ready)||0;
+  document.getElementById('sc-d').textContent=d.filter(e=>idxOf(e)>30).length;
+  document.getElementById('sc-mx').textContent=Math.max(...d.map(idxOf));
+  document.getElementById('sc-rm').textContent=Math.max(...d.map(rdyOf));
+  dstroy('sc');
+  ch.sc=new Chart(document.getElementById('sc-ch'),{data:{labels:lb,datasets:[
+    {type:'bar',data:d.map(idxOf),backgroundColor:'#534AB7',borderRadius:2,barPercentage:0.9,categoryPercentage:0.95,order:2},
+    {type:'line',data:d.map(rdyOf),borderColor:'#AFA9EC',backgroundColor:'rgba(175,169,236,0.15)',borderWidth:1.5,pointRadius:0,fill:true,order:1,tension:0.3}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+      scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,max:100,title:{display:true,text:t('scl_leg_idx'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>i.datasetIndex===0?t('tt_favidx')+': '+idxOf(d[i.dataIndex]):t('tt_apoth')+': '+rdyOf(d[i.dataIndex])}}}}});
+}
+function setSclVar(v){curSclVar=v;drawSclero();}
+function drawRoya(){
+  const R=(D.roya&&D.roya[sel])?D.roya[sel]:{data:[],region:''};
+  const d=R.data,lb=d.map(e=>e.f.slice(5));
+  document.getElementById('ra-lbl').textContent=sel;document.getElementById('ra-reg').textContent=t('region')+': '+R.region;
+  document.getElementById('ra-d').textContent=d.filter(e=>e.allii>0).length;
+  document.getElementById('ra-mx').textContent=(d.length?Math.max(...d.map(e=>e.allii)):0).toFixed(1);
+  document.getElementById('ra-sm').textContent=d.reduce((a,e)=>a+e.allii,0).toFixed(1);
+  barLine('ra-ch','ra',lb,d.map(e=>e.allii),'#C05621',d.map(e=>e.wet),84,t('sev_04'),i=>{const e=d[i.dataIndex];return i.datasetIndex===0?t('sev_04')+': '+e.allii+(e.tm!=null?' · '+e.tm+'°C':''):t('wet_h')+': '+e.wet;});
+}
+function drawStemph(){
+  const S=(D.stemph&&D.stemph[sel])?D.stemph[sel]:{data:[],region:''};
+  const d=S.data,lb=d.map(e=>e.f.slice(5));
+  document.getElementById('se-lbl').textContent=sel;
+  document.getElementById('se-reg').textContent=t('region')+': '+S.region;
+  const cum=d.map(e=>e.cum);
+  document.getElementById('se-t').textContent=cum.length?cum[cum.length-1]:0;
+  document.getElementById('se-d').textContent=d.filter(e=>e.dsv>0).length;
+  const over=cum.length&&cum[cum.length-1]>=15;
+  document.getElementById('se-th').textContent=over?t('yes'):t('no');
+  dstroy('se');
+  ch.se=new Chart(document.getElementById('se-ch'),{data:{labels:lb,datasets:[
+    {type:'line',data:cum,borderColor:'#8A6D1F',backgroundColor:'rgba(138,109,31,0.08)',borderWidth:2,pointRadius:0,fill:true,yAxisID:'y',order:1,tension:0.2},
+    {type:'bar',data:d.map(e=>e.dsv),backgroundColor:'#DCC98A',yAxisID:'y2',order:2,barPercentage:0.9,categoryPercentage:0.95}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+      scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,position:'left',title:{display:true,text:t('dsv_cum'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}},y2:{min:0,max:4,position:'right',title:{display:true,text:t('dsv_daily'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{display:false}}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>i.datasetIndex===0?t('dsv_cum')+': '+cum[i.dataIndex]:t('dsv_daily')+': '+d[i.dataIndex].dsv+(d[i.dataIndex].tm!=null?' · '+d[i.dataIndex].tm+'°C':'')}}}},
+    plugins:[{afterDraw:c=>{const y=c.scales.y.getPixelForValue(15),ctx=c.ctx;ctx.save();ctx.strokeStyle='#A32D2D';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(c.scales.x.left,y);ctx.lineTo(c.scales.x.right,y);ctx.stroke();ctx.restore();}}]});
+}
+// --- Tablero de condiciones actuales (página de inicio) ---
+// Los datos vienen de dos fuentes, en este orden:
+//   1. condiciones.json publicado junto a esta página (actualizado cada hora
+//      por el workflow tablero.yml). Al estar en el MISMO dominio, el navegador
+//      puede leerlo sin restricción de origen cruzado.
+//   2. Los datos incrustados abajo (de la corrida diaria), como respaldo si la
+//      lectura falla o si la página se abre desde un archivo local.
+let TBL = /*__TABLERO__*/{"timestamp":null,"estaciones":{}}/*__ENDTBL__*/;
+function cargarCondiciones(){
+  // Evita caché: sin esto el navegador podría servir una copia vieja.
+  fetch('condiciones.json?_=' + Date.now())
+    .then(r => r.ok ? r.json() : null)
+    .then(j => {
+      if(j && j.estaciones && Object.keys(j.estaciones).length){
+        // Conservar el mapa nombre->clave si el JSON horario no lo trae
+        if(!j.name2id && TBL.name2id) j.name2id = TBL.name2id;
+        TBL = j;
+        if(curPage === 0) drawTablero();
+      }
+    })
+    .catch(() => {});   // respaldo silencioso: quedan los datos incrustados
+}
+const _DIRS=['N','NE','E','SE','S','SO','O','NO'];
+function tblDir(g){if(g==null)return '';return _DIRS[Math.round((g%360)/45)%8];}
+// Mapa nombre de estación -> id Agromet (para cruzar favoritas con datos del tablero)
+const NAME2ID = /*__NAME2ID__*/{}/*__ENDN2I__*/;
+function tblFavList(){
+  // Favoritas (por nombre) que tengan datos en el tablero
+  return getFavs().map(n=>({n:n, id:NAME2ID[n]}))
+    .filter(x=>x.id && TBL.estaciones[x.id]);
+}
+function tblPanel(nombre, id){
+  const e=TBL.estaciones[id]; if(!e)return '';
+  const on=(e.vigencia==='hoy');
+  const mm=v=>(v===null||v===undefined)?'—':(v).toFixed(1);
+  const azul=(v,txt)=>(v>0)?`<span class="rain">${txt}</span>`:`<span>${txt}</span>`;
+  const hoy=e.lluvia_hoy, ayer=e.lluvia_ayer;
+  // Acumulado del año = lo calculado hasta AYER en la corrida diaria + la
+  // lluvia de hoy, que llega cada hora. Así la cifra queda al día sin pedir
+  // el histórico completo a cada rato.
+  const base=(TBL.anual&&TBL.anual[id]!==undefined)?TBL.anual[id]:null;
+  const anual=(base===null)?null:(base+(hoy||0));
+  const tmax=(e.t_max!=null)?Math.round(e.t_max)+'°':'—';
+  const tmin=(e.t_min!=null)?Math.round(e.t_min)+'°':'—';
+  const hr=(e.hr!=null)?e.hr+'%':'—';
+  const v=(e.viento!=null)?(e.viento).toFixed(1):'—';
+  const vmax=(e.viento_max!=null)?Math.round(e.viento_max):'—';
+  const st=on
+    ?`<span class="tbl-pstate on"><span class="tbl-dot" style="background:#1d9e75"></span>${t('tbl_online')}</span>`
+    :`<span class="tbl-pstate off"><span class="tbl-dot" style="background:#c8d0da"></span>${t('tbl_ayer')}</span>`;
+  return `<div class="tbl-panel">
+    <div class="tbl-phead">
+      <div><div class="tbl-pname">${nombre}</div><div class="tbl-ploc">${e.comuna||''} · ${e.region||''}</div></div>
+      <button class="tbl-premove" onclick="toggleFav('${nombre.replace(/'/g,"\\'")}')" title="${t('tbl_remove')}">★</button>
+    </div>
+    <div class="tbl-ptemp"><span class="tbl-ptmax">${tmax}</span><span class="tbl-ptmin">/ ${tmin} ${t('tbl_min')}</span></div>
+    <div class="tbl-pgrid">
+      <div class="tbl-pcell">💧 <b>${hr}</b> HR</div>
+      <div class="tbl-pcell">💨 <b>${v}</b> km/h ${tblDir(e.dir_viento)}</div>
+      <div class="tbl-pcell">↗ ${t('tbl_gust')} <b>${vmax}</b></div>
+      <div class="tbl-pcell"></div>
+    </div>
+    <div class="tbl-rain">
+      <div class="tbl-rain__lbl">🌧 ${t('tbl_rain')}</div>
+      <div class="tbl-rain__row">
+        <div><span class="k">${t('tbl_rain_today')}</span><b>${azul(hoy,mm(hoy))}</b></div>
+        <div><span class="k">${t('tbl_rain_yest')}</span><b>${azul(ayer,mm(ayer))}</b></div>
+        <div><span class="k">${t('tbl_rain_year')}</span><b>${mm(anual)}</b></div>
+      </div>
+    </div>
+    ${st}
+  </div>`;
+}
+function tblSearch(){
+  const q=document.getElementById('tbl-q').value.trim().toLowerCase();
+  const box=document.getElementById('tbl-results');
+  if(!q){box.className='tbl-results';box.innerHTML='';return;}
+  // Buscar entre TODAS las estaciones con datos en el tablero
+  const hits=[];
+  for(const id in TBL.estaciones){
+    const e=TBL.estaciones[id];
+    const nombre=e.nombre||id;
+    if(nombre.toLowerCase().includes(q)||(e.comuna||'').toLowerCase().includes(q)||(e.region||'').toLowerCase().includes(q)){
+      hits.push({id, nombre, region:e.region||''});
+    }
+  }
+  box.className='tbl-results open';
+  if(!hits.length){box.innerHTML=`<div class="tbl-ritem" style="cursor:default">${t('st_noresult')}</div>`;return;}
+  box.innerHTML=hits.slice(0,30).map(h=>{
+    const on=getFavs().includes(h.nombre);
+    return `<div class="tbl-ritem" onclick="toggleFav('${h.nombre.replace(/'/g,"\\'")}')">
+      <span class="tbl-star ${on?'on':''}">${on?'★':'☆'}</span>
+      ${h.nombre} <span class="reg">${h.region}</span></div>`;
+  }).join('');
+}
+function drawTablero(){
+  // Marca de tiempo + antigüedad del dato
+  const ts=document.getElementById('tbl-ts');
+  const fresh=document.getElementById('tbl-fresh');
+  if(TBL.timestamp){
+    // Mostrar fecha y hora en zona de Chile. El timestamp trae su offset
+    // (ej. -04:00), así que se formatea explícitamente a esa zona.
+    let etiqueta=TBL.timestamp.replace('T',' ');
+    try{
+      const d=new Date(TBL.timestamp);
+      if(!isNaN(d)){
+        etiqueta=d.toLocaleString('es-CL',{timeZone:'America/Santiago',
+          year:'numeric',month:'2-digit',day:'2-digit',
+          hour:'2-digit',minute:'2-digit',hour12:false});
+      }
+    }catch(e){}
+    ts.textContent=t('tbl_updated')+' '+etiqueta;
+    // Antigüedad respecto de ahora
+    let mins=null;
+    try{
+      const d=new Date(TBL.timestamp);
+      if(!isNaN(d)) mins=Math.round((Date.now()-d.getTime())/60000);
+    }catch(e){}
+    if(mins!==null && mins>=0 && mins<48*60){
+      fresh.textContent=' · '+(mins<60
+        ? t('tbl_ago_min').replace('{n}',mins)
+        : t('tbl_ago_h').replace('{n}',Math.floor(mins/60)));
+    }else{
+      fresh.textContent='';
+    }
+  }else{
+    ts.textContent=t('tbl_nodata');fresh.textContent='';
+  }
+  document.getElementById('tbl-q').placeholder=t('st_search_ph');
+  // Cuadrícula de favoritas
+  const favs=tblFavList();
+  const g=document.getElementById('tbl-grid');
+  if(!favs.length){g.className='';g.innerHTML=`<div class="tbl-empty">${t('tbl_empty')}</div>`;return;}
+  g.className='tbl-grid';
+  g.innerHTML=favs.map(f=>tblPanel(f.n,f.id)).join('');
+  // refrescar resultados de búsqueda por si cambió una estrella
+  if(document.getElementById('tbl-q').value.trim())tblSearch();
+}
+
+function renderAll(){
+  if(curPage===0){drawTablero();}
+  else if(curPage===1){mkSt('m-st');drawMildewStack();drawMildew();}
+  else if(curPage===2){const s=curSub[2];mkSt(['ap-st','ad-st','ab-st'][s]);drawAlt(s);}
+  else if(curPage===3){const s=curSub[3];mkSt(['bs-st','bc-st'][s]);drawBot(s);}
+  else if(curPage===4){mkSt('sc-st');drawSclero();}
+  else if(curPage===5){mkSt('ra-st');drawRoya();}
+  else if(curPage===6){mkSt('se-st');drawStemph();}
+}
+applyLang();
+renderAll();
+cargarCondiciones();
+setUpdStamps();
+function setUpdStamps(){
+  // La fecha de actualización del pronóstico está en el pie (marca de la corrida
+  // diaria). Se replica en cada página de enfermedad para que sea visible sin
+  // volver a la portada. Es la MISMA fecha: las 8 enfermedades se calculan en la
+  // corrida de las 06:00, no por hora (eso es solo el tablero de inicio).
+  const stamp=document.querySelector('.stamp');
+  let fecha='';
+  if(stamp){
+    const m=stamp.textContent.match(/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
+    if(m)fecha=m[1];
+  }
+  document.querySelectorAll('.upd-stamp').forEach(el=>{
+    el.textContent=t('upd_label')+' '+fecha;
+  });
+}
+</script>
+</body>
+</html>
