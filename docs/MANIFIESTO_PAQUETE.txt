@@ -1,5 +1,5 @@
 MANIFIESTO DEL PAQUETE — Iconos de aplicacion Pathology Forecast
-v2.1 · 30-07-2026  (v2.0 + hallazgos sobre la copia local)
+v2.2 · 30-07-2026
 (c) 2026 Winston Colvin — South Pacific Seeds Chile
 
 Repositorio destino : colvinseed/sps-fitosanitario   rama main
@@ -15,91 +15,114 @@ icon-512.png                    20402  d66ffead15d13996259a41f71b3f10fc  nuevo
 manifest.json                     612  e27fdcb6ffa9762a2fbb0f771d4a4b09  nuevo
 assets/logo-320.png             19619  e67910f907b65f8ca7b4f7f9d9245928  nuevo
 assets/logo-max.png             85258  5de9305422b1d73d87e4e8c0bd415073  nuevo
-docs/BLOQUE_HEAD_ICONOS.txt      5689  c0b10ff42593df4f7a9e8cf2f5aba4a1  nuevo
+docs/BLOQUE_HEAD_ICONOS.txt      5689  1fd52068cebab004ea221f42bc79ef51  nuevo
 docs/FICHA_ICONOS.txt            7662  6a4fdf587701df54a47259ecf7cbc297  nuevo
-src/template.html               57651  fb598abf40fe918343cf3002d4449a2a  REEMPLAZA
+src/template.html               57651  e2adf2f7b7b800026425f55a281a9ceb  REEMPLAZA
 tools/build_icons.py             4383  f5d9776e44b657a955a5c2223ce70761  nuevo
 -----------------------------------------------------------------------------
-TOTAL                          214732
+subtotal (sin este documento)    214732
 
+Este documento se excluye de la tabla: su propio md5 solo existe una vez
+escrito, y listarlo dentro de si mismo lo dejaria permanentemente obsoleto.
+
+=============================================================================
+COMO VERIFICAR QUE FUNCIONO
+=============================================================================
+
+La version que muestra la pagina NO cambia. El sello del encabezado seguira
+diciendo  v3.0 diario  porque ese es el numero del sitio, no del paquete de
+iconos. Los marcadores validos son otros tres:
+
+  1. EN EL CODIGO FUENTE DE LA PAGINA  (Ctrl+U y luego Ctrl+F)
+     Buscar:  v2.2
+     Debe aparecer la linea:
+       <!-- App icons / PWA — Pathology Forecast · v2.2 · 30-07-2026 -->
+     Si no aparece, el index.html publicado sigue saliendo del template
+     viejo: falta correr el workflow.
+
+  2. LA MARCA DE TIEMPO DEL ENCABEZADO
+     Debe ser POSTERIOR a  2026-07-30 03:01  (la corrida vigente al momento
+     de armar este paquete). Aparece junto a  v3.0 diario.
+
+  3. LOS ARCHIVOS SERVIDOS DIRECTAMENTE  (abrir cada URL en el navegador)
+     https://colvinseed.github.io/sps-fitosanitario/manifest.json
+     https://colvinseed.github.io/sps-fitosanitario/apple-touch-icon.png
+     https://colvinseed.github.io/sps-fitosanitario/icon-192.png
+     https://colvinseed.github.io/sps-fitosanitario/icon-512.png
+     https://colvinseed.github.io/sps-fitosanitario/favicon-32.png
+     Los cinco deben responder. Estos NO dependen del workflow: quedan
+     servidos en cuanto GitHub Pages procese el push, uno o dos minutos.
+
+  Secuencia esperada: los cinco archivos del punto 3 responden primero;
+  el marcador del punto 1 aparece solo despues de que el pipeline
+  regenere index.html.
+
+=============================================================================
 UNICO ARCHIVO QUE SE SOBRESCRIBE
+=============================================================================
   src/template.html
   Original en main : md5 318112df9d3a6ac96f32cf3d204c2881 · 770 lineas · 56.951 B
-  Este paquete     : md5 fb598abf40fe918343cf3002d4449a2a · 781 lineas · 57.651 B
+  Este paquete     : md5 e2adf2f7b7b800026425f55a281a9ceb · 781 lineas · 57.651 B
   Diferencia       : 11 lineas insertadas tras la linea 6 (<title>). El resto
-                     del archivo es identico byte a byte. Verificado contra el
-                     tarball de main descargado el 30-07-2026.
+                     del archivo es identico byte a byte.
 
-CARPETAS NUEVAS QUE INTRODUCE ESTE PAQUETE
-  tools/   generador de iconos. Se separa de src/ a proposito: no forma parte
+=============================================================================
+NO INCLUIR EN EL COMMIT
+=============================================================================
+  index.html  y  condiciones.json
+  En la copia local de escritorio ambos estan con CRLF de Windows, mientras
+  que en el repositorio estan con LF. El delta de bytes coincide exactamente
+  con el numero de lineas (769 y 995 respectivamente): el contenido es
+  identico, solo cambia el fin de linea. Agregarlos genera churn contra el
+  bot en cada corrida diaria.
+  Por eso el git add es explicito por archivo. No usar  git add .
+
+=============================================================================
+CARPETAS NUEVAS
+=============================================================================
+  tools/   generador de iconos. Separado de src/ a proposito: no forma parte
            del pipeline diario, es una utilidad de un solo uso.
-  assets/  logo derivado, recortado al contenido y optimizado. No lo consume
-           el sitio; se versiona por trazabilidad. Puedes borrarla sin efecto.
-  docs/    ya existe en el repo (GUIA_DESPLIEGUE.md). Se agregan dos archivos.
+  assets/  logo derivado, recortado y optimizado. El sitio no lo consume; se
+           versiona por trazabilidad. Se puede borrar sin efecto.
+  docs/    ya existe en el repo (GUIA_DESPLIEGUE.md). Se agregan tres archivos.
 
-NO INCLUIDO A PROPOSITO
-  index.html        lo genera el bot en cada corrida
-  condiciones.json  idem
+=============================================================================
+PENDIENTE, FUERA DEL ALCANCE DE ESTE PAQUETE
+=============================================================================
+  daily.yml hace  git push  sin  pull --rebase  previo. tablero.yml empuja
+  varias veces al dia, por lo que existe una carrera que puede rechazar el
+  push de daily.yml. No se observo fallando el 30-07-2026 (corrida de las
+  02:55 hora de Chile exitosa), pero la fragilidad sigue ahi. No se modifico:
+  es pipeline de produccion.
 
-COMANDO DE PUBLICACION
+  src/.gitignore contiene la regla  "output/"  con comillas literales, que
+  git no interpreta como entrecomillado. La regla es inerte. Funciona de
+  todos modos porque el .gitignore de la raiz tiene  output/  sin comillas.
+
+=============================================================================
+SECUENCIA DE PUBLICACION
+=============================================================================
+  cd ...\Desktop\GitHub\sps-fitosanitario
   git pull
+  [descomprimir el zip aqui, sobrescribiendo]
   git add apple-touch-icon.png icon-192.png icon-512.png favicon-32.png \
           manifest.json src/template.html tools/ assets/ docs/
-  git commit -m "Iconos de aplicacion y manifest PWA - Pathology Forecast v2.0"
+  git commit -m "Iconos de aplicacion y manifest PWA - Pathology Forecast v2.2"
   git push
 
-El icono no aparecera hasta que el pipeline regenere index.html. Para verlo hoy:
-  Actions -> Pronostico fitosanitario diario SPS -> Run workflow.
+  Luego: Actions -> Pronostico fitosanitario diario SPS -> Run workflow.
 
 =============================================================================
-HALLAZGOS SOBRE LA COPIA LOCAL — verificados el 30-07-2026
+HISTORIAL
 =============================================================================
-
-1. NO INCLUIR ESTOS DOS ARCHIVOS EN EL COMMIT
-   index.html  y  condiciones.json
-
-   En la copia local de escritorio ambos estan con fin de linea CRLF de
-   Windows, mientras que en el repositorio estan con LF:
-
-       archivo             copia local        repositorio     delta
-       index.html          769 CRLF           0 CRLF / 769 LF   +769 B
-       condiciones.json    995 CRLF           0 CRLF / 995 LF   +995 B
-       src/.gitignore        1 CRLF           0 CRLF /   1 LF     +1 B
-
-   El delta de bytes coincide exactamente con el numero de lineas: el
-   contenido es identico, solo cambia el fin de linea. Si se agregan al
-   commit, se introduce una churn de fin de linea que pelea con el bot en
-   cada corrida diaria. Los .py y template.html conservan LF.
-
-2. git pull ANTES DE DESCOMPRIMIR
-   El bot empuja sin pull previo. Trabajar sobre una copia atrasada hace
-   rebotar el push.
-
-3. daily.yml — REVISAR
-   Ultimo commit de "SPS Daily Bot" (el que regenera index.html):
-   2026-07-28 16:30 UTC. No produjo commit el 29 ni el 30 de julio.
-   En ese periodo si corrio tablero.yml (commits "Condiciones actuales"
-   de github-actions[bot]: 29-07 a las 00:14, 10:17, 20:16 y 23:46 UTC).
-
-   Causa probable: carrera de push. daily.yml hace checkout, tablero.yml
-   empuja en el intertanto, y el push de daily.yml se rechaza. daily.yml
-   no tiene pull ni --rebase antes de push.
-
-   Consecuencia practica: disparar "Run workflow" a mano puede fallar por
-   la misma razon. Revisar la pestana Actions antes de darlo por hecho.
-   No se modifico daily.yml: es pipeline de produccion y el ajuste no
-   forma parte de este paquete.
-
-4. src/.gitignore CONTIENE UNA REGLA INERTE
-   Su contenido es  "output/"  con comillas literales. Git no interpreta
-   comillas ahi: busca una ruta que contenga el caracter comilla. La regla
-   no hace nada. Funciona de todos modos porque el .gitignore de la raiz
-   tiene  output/  sin comillas, que calza a cualquier profundidad.
-   No se corrigio: queda fuera del alcance de este paquete.
-
-=============================================================================
-CAMBIO RESPECTO DE v2.0
-=============================================================================
-   Solo este documento. Los 11 archivos de carga (iconos, manifest.json,
-   src/template.html, tools/, assets/ y los otros dos docs/) son byte a
-   byte identicos a v2.0; sus MD5 de la tabla anterior siguen vigentes.
+  v2.0  30-07-2026  Juego de iconos derivado de Pathology_Forecast_Logo_2.png.
+  v2.1  30-07-2026  Se agregan los hallazgos sobre la copia local (CRLF,
+                    git pull previo, estado de daily.yml, gitignore inerte).
+  v2.2  30-07-2026  Se corrige el sello de version del bloque insertado en
+                    el head: decia v1.0, heredado de la primera iteracion, y
+                    no coincidia con la version del paquete. Ahora dice v2.2
+                    y sirve como marcador de verificacion en el codigo fuente
+                    de la pagina publicada. Cambia el md5 de src/template.html
+                    de fb598abf40fe918343cf3002d4449a2a a
+                    e2adf2f7b7b800026425f55a281a9ceb. Los cuatro PNG y
+                    manifest.json no cambian.

@@ -1,4 +1,4 @@
-PARCHE — src/template.html · v1.0 · 30-07-2026
+PARCHE — src/template.html · v2.2 · 30-07-2026
 © 2026 Winston Colvin — South Pacific Seeds Chile
 
 ESTADO VERIFICADO DEL ARCHIVO (rama main, 30-07-2026)
@@ -18,7 +18,7 @@ OPERACIÓN
   cualquier sustitución tipo str.format() o % que aplique el generador en src/.
 
 --------------------- INICIO DEL BLOQUE A INSERTAR ---------------------
-<!-- App icons / PWA — Pathology Forecast · v1.0 · 30-07-2026 -->
+<!-- App icons / PWA — Pathology Forecast · v2.2 · 30-07-2026 -->
 <meta name="theme-color" content="#14366E">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
