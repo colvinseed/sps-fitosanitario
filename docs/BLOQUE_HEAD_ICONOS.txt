@@ -1,0 +1,106 @@
+PARCHE — src/template.html · v1.0 · 30-07-2026
+© 2026 Winston Colvin — South Pacific Seeds Chile
+
+ESTADO VERIFICADO DEL ARCHIVO (rama main, 30-07-2026)
+  Ruta ........... src/template.html
+  Tamaño ......... 56.951 bytes · 769 líneas
+  Líneas 1-7 ..... <!DOCTYPE html> / <html lang="es"> / <head> / <meta charset>
+                   / <meta viewport> / <title> / <script Chart.js>
+  Etiquetas de ícono, manifest o theme-color preexistentes: NINGUNA
+  (grep sobre apple-touch|manifest|favicon|rel="icon"|theme-color → 0 coincidencias)
+
+OPERACIÓN
+  Insertar el bloque delimitado más abajo INMEDIATAMENTE DESPUÉS de la línea 6
+  (la línea del <title>) y ANTES de la línea 7 (el <script> de Chart.js).
+  No se modifica ninguna línea existente. El resultado deja el archivo en 780 líneas.
+
+  El bloque no contiene llaves { } ni signos %, por lo que es inerte frente a
+  cualquier sustitución tipo str.format() o % que aplique el generador en src/.
+
+--------------------- INICIO DEL BLOQUE A INSERTAR ---------------------
+<!-- App icons / PWA — Pathology Forecast · v1.0 · 30-07-2026 -->
+<meta name="theme-color" content="#14366E">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Pathology Forecast">
+---------------------- FIN DEL BLOQUE A INSERTAR -----------------------
+
+FUNDAMENTO DE CADA LÍNEA
+  theme-color #14366E
+      Colorea la barra de direcciones en Chrome/Android y el marco de la
+      ventana instalada. Coincide con el azul marino institucional.
+
+  rel="manifest" href="./manifest.json"
+      Ruta relativa, no absoluta. El sitio se sirve bajo el subdirectorio
+      /sps-fitosanitario/ (GitHub Pages de proyecto). Una ruta "/manifest.json"
+      apuntaría a colvinseed.github.io/manifest.json y fallaría con 404.
+      El index.html generado queda en la RAÍZ del repo, por lo que "./" resuelve
+      correctamente aunque el template viva en src/.
+
+  apple-touch-icon 180x180
+      iOS NO lee manifest.json para el ícono de pantalla de inicio. Sin esta
+      etiqueta, Safari genera una miniatura de la página. 180 px es el tamaño
+      nativo desde iPhone 6 Plus y se reescala hacia abajo sin artefactos.
+
+  favicon-32 / icon-192 / icon-512
+      32 px para la pestaña de escritorio; 192 px para el lanzador Android;
+      512 px para la pantalla de bienvenida y los listados de la Play Store /
+      criterios de instalabilidad de Chrome.
+
+  mobile-web-app-capable + apple-mobile-web-app-capable
+      La primera es la forma vigente; la segunda se mantiene porque las
+      versiones de iOS aún en uso sólo reconocen el prefijo apple-.
+      Ambas eliminan la barra de Safari al abrir desde el ícono.
+
+  apple-mobile-web-app-status-bar-style = "black"
+      Deliberadamente NO se usa "black-translucent". Ese valor extiende el
+      contenido bajo la barra de estado y el <nav class="pages"> del template
+      es sticky con top:0, por lo que quedaría parcialmente tapado por la hora
+      y los indicadores del sistema. "black" entrega una barra opaca que no
+      altera el flujo de la maqueta.
+
+  apple-mobile-web-app-title = "Pathology Forecast"
+      Es la etiqueta que iOS muestra bajo el ícono. Sin ella, iOS usaría el
+      <title> completo ("Sistema de pronóstico fitosanitario — SPS Chile") y lo
+      truncaría.
+
+PUNTO PENDIENTE DE DECISIÓN (no ejecutado)
+  Android recorta los íconos "any" dentro de una máscara circular o de
+  superelipse, según el lanzador. Si el símbolo de la lupa ocupa el borde del
+  lienzo, se cortará. Las dos salidas son:
+    (a) generar los íconos con un margen de seguridad interno del 10 % y dejar
+        el manifest tal como está — sin archivos adicionales;
+    (b) agregar un quinto archivo icon-512-maskable.png con zona segura del
+        20 % y declararlo con "purpose": "maskable".
+  El manifest entregado corresponde a la opción (a). Confirmar antes de pasar
+  a (b), que agrega un archivo al alcance ya acordado.
+
+NOTA SOBRE short_name
+  El manifest declara short_name "Pathology". Los lanzadores Android truncan
+  la etiqueta cerca de los 12 caracteres; "Pathology Forecast" se mostraría
+  cortado. El nombre completo se conserva en "name" y en la etiqueta iOS.
+
+VERIFICACIÓN POSTERIOR AL DESPLIEGUE (pendiente de ejecutar)
+  1. Confirmar que el workflow de GitHub Actions no limpia la raíz antes de
+     escribir index.html. Si lo hiciera, los PNG y el manifest se borrarían en
+     cada corrida. No verificado en esta sesión: falta revisar los .yml.
+  2. Chrome DevTools → Application → Manifest: debe listar los dos íconos sin
+     advertencias.
+  3. iPhone: Safari → Compartir → Agregar a pantalla de inicio. Verificar que
+     aparezca el símbolo y el rótulo "Pathology Forecast".
+
+PERSISTENCIA
+  Estos archivos deben quedar versionados en colvinseed/sps-fitosanitario.
+  La carpeta de salida de esta sesión es volátil y no constituye respaldo.
+    manifest.json ............... RAÍZ del repo
+    apple-touch-icon.png ........ RAÍZ del repo
+    favicon-32.png .............. RAÍZ del repo
+    icon-192.png ................ RAÍZ del repo
+    icon-512.png ................ RAÍZ del repo
+    template.html (modificado) .. src/

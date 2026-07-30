@@ -1,0 +1,144 @@
+FICHA TÉCNICA — Íconos de aplicación "Pathology Forecast"
+v2.0 · 30-07-2026 · reemplaza v1.0 (fusión programática de dos archivos)
+© 2026 Winston Colvin — South Pacific Seeds Chile
+
+===========================================================================
+1. FUENTE
+===========================================================================
+  Pathology_Forecast_Logo_2.png ... 1254 × 1254 px · RGB · 906.838 bytes
+  Marca ya combinada: símbolo lupa-hoja sobre monograma SPS en filigrana.
+  No se ejecutó ninguna fusión: la composición es la del archivo.
+
+  Geometría medida por perfil de filas y saturación, no supuesta:
+      banda 135–830 ..... bloque gráfico (filigrana + símbolo)
+      banda 857–938 ..... tipografía "PATHOLOGY"      → descartada
+      banda 949–1006 .... tipografía "FORECAST"       → descartada
+      filigrana SPS ..... x 221–1073, y 135–830   (853 × 696 px)
+      símbolo ........... x 417–847,  y 339–812   (431 × 474 px)
+      tono filigrana .... #E8E8E8 (111.178 px, dominante)
+
+===========================================================================
+2. ENCUADRE
+===========================================================================
+  Cuadro de 760 × 760 px centrado en (640, 558) → x 260–1020, y 178–938.
+  El recorte se pega a sangre; los márgenes del propio recorte hacen de
+  zona segura. Fondo blanco. Radio squircle 22,5 % del lado.
+
+  Resultado geométrico:
+      símbolo ......... 56,7 % del ancho, 62,4 % del alto del lienzo
+      márgenes ........ izq 20,7 %  der 22,6 %  sup 21,2 %  inf 16,4 %
+      filigrana ....... recortada 4,6 % por la izquierda, 6,3 % por la
+                        derecha y 6,2 % por arriba. Los tres recortes son
+                        del mismo orden, por lo que el monograma se lee
+                        completo sin asimetría aparente.
+
+  FUNDAMENTO DEL RECORTE. El bloque gráfico completo mide 853 × 696 px:
+  es apaisado. Inscribirlo entero en un lienzo cuadrado obliga a ajustar
+  por el ancho, y el símbolo — el único elemento reconocible a tamaño de
+  uso — queda reducido. Cifras medidas:
+
+      lienzo    símbolo con este encuadre    con el bloque completo
+      ------------------------------------------------------------
+      180 px            112,3 px                    82,0 px
+      120 px             74,8 px                    54,7 px
+       60 px             37,4 px                    27,3 px
+       32 px             20,0 px                    14,6 px
+                         ganancia uniforme de 37 %
+
+  La filigrana #E8E8E8 sobre blanco rinde una razón de contraste de
+  1,23 : 1. A 60 px, el tamaño real en una pantalla de inicio, es
+  imperceptible. Ceder 37 % de tamaño del símbolo para conservar íntegro
+  un elemento invisible a tamaño de uso no se justifica: la filigrana
+  aporta en el archivo de 512 px, donde sí se distingue, y ahí se conserva
+  casi completa.
+
+  Contrastes medidos sobre blanco (WCAG):
+      filigrana #E8E8E8 ......... 1,23 : 1
+      verde hoja #6B9B37 ........ 3,30 : 1
+      carbón esporas #16301F .... 14,22 : 1
+
+===========================================================================
+3. ARCHIVOS GENERADOS
+===========================================================================
+  archivo                 px   esquinas    alfa    variante        peso
+  ---------------------------------------------------------------------------
+  apple-touch-icon.png   180   cuadradas   opaco   completa      7.567 B
+  icon-192.png           192   squircle    con     completa      5.448 B
+  icon-512.png           512   squircle    con     completa     20.402 B
+  favicon-32.png          32   squircle    con     simplificada    441 B
+  ---------------------------------------------------------------------------
+  TOTAL                                                         33.858 B
+                                                                (33,1 KiB)
+
+  Reducción respecto de la fuente (906.838 B): 96,5 %.
+
+  DOS DECISIONES QUE SE APARTAN DEL PATRÓN ÚNICO:
+
+  a) apple-touch-icon.png es opaco y de esquinas cuadradas.
+     iOS aplica su propia máscara squircle sobre el archivo. Si el PNG
+     llega con esquinas transparentes, iOS las compone sobre negro y el
+     ícono muestra cuatro cuñas oscuras. Verificado en el archivo escrito:
+     alfa mínimo = alfa máximo = 255, sin transparencia.
+
+  b) favicon-32.png omite la filigrana.
+     A 32 px el monograma mide unos 8 px y su contraste es 1,23 : 1: no
+     aporta y roba área al símbolo. La variante simplificada recorta al
+     símbolo con 13 % de margen y lo centra. El símbolo pasa de 14,6 px
+     a 20,0 px, un 37 % mayor.
+
+===========================================================================
+4. COMPRESIÓN
+===========================================================================
+  Dos etapas:
+
+  a) Limpieza de la fuente (función `clean`). El archivo de origen trae
+     moteado en las zonas claras. Los píxeles casi-blancos — 59 % del
+     lienzo, medido — se llevan a blanco puro, y los grises de la
+     filigrana se cuantizan a escalones de 8 niveles. Los verdes y el
+     carbón no se tocan. Esta etapa sola baja el PNG a cerca de un tercio.
+
+  b) Cuantización a paleta indexada (modo P), sin difuminado:
+     48 colores en 180 y 192 px, 64 en 512 px, 16 en 32 px.
+     Los archivos con alfa usan FASTOCTREE, el único método de Pillow que
+     preserva el canal alfa; MEDIANCUT lo descarta y aborta con
+     ValueError. El de 180 px, opaco, se aplana sobre blanco y se
+     cuantiza con MEDIANCUT, de mejor fidelidad en RGB.
+
+===========================================================================
+5. REPRODUCIBILIDAD
+===========================================================================
+  build_icons.py v2.0 regenera el juego completo desde la fuente. Recortes,
+  encuadre, radio y paletas están declarados como constantes en la cabecera.
+  Toda modificación de encuadre se hace ahí y no editando los PNG.
+  Para volver al bloque gráfico completo basta cambiar FRAME_SIDE a 860 y
+  FRAME_CENTER a (647, 483).
+
+===========================================================================
+6. NO VERIFICADO EN ESTA SESIÓN
+===========================================================================
+  1. INSPECCIÓN VISUAL. El renderizado de las hojas de contacto falló en mi
+     entorno tras los primeros intentos. Las cifras de este documento son
+     medidas sobre los archivos; el juicio estético de la marca cortada al
+     4,6–6,3 % y del equilibrio del encuadre queda por confirmar en
+     _PREVIEW_iconos.png. No lo declaro verificado.
+  2. Los archivos .yml del repositorio no fueron revisados. Si el workflow
+     limpia la raíz antes de escribir index.html, los cuatro PNG y el
+     manifest.json se borrarán en cada corrida.
+  3. Chrome DevTools → Application → Manifest: debe listar icon-192 e
+     icon-512 sin advertencias.
+  4. iPhone: Safari → Compartir → Agregar a pantalla de inicio. Confirmar
+     que aparece el símbolo y el rótulo "Pathology Forecast".
+
+===========================================================================
+7. PERSISTENCIA
+===========================================================================
+  La carpeta de salida de esta sesión es volátil y no constituye respaldo.
+  Destino en colvinseed/sps-fitosanitario:
+
+      RAÍZ    apple-touch-icon.png
+      RAÍZ    icon-192.png
+      RAÍZ    icon-512.png
+      RAÍZ    favicon-32.png
+      RAÍZ    manifest.json
+      src/    template.html  (con el bloque de PARCHE_head_template.txt)
+      tools/  build_icons.py
