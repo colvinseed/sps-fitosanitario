@@ -1,0 +1,284 @@
+===============================================================================
+ FICHA TECNICA — EMPAQUETADO PWA / PWA PACKAGING DATA SHEET
+ Fitosanitario SPS · Herramientas fitosanitarias
+ v1.0 · 30-07-2026
+ (c) 2026 Winston Colvin — South Pacific Seeds Chile S.A.
+ Paleta institucional: #14366E / #1F5BA6 / #E8EFF8
+===============================================================================
+
+-------------------------------------------------------------------------------
+ 1. ALCANCE  /  SCOPE
+-------------------------------------------------------------------------------
+ES  Instalabilidad de la herramienta como aplicacion en iPhone y Android, sin
+    modificar el contenido tecnico. La aplicacion publicada (v2.6 · 15-07-2026)
+    conserva integramente sus datos, filtros, cruces SAG/APVMA/ACVM y estatus UE.
+    El parche es estrictamente ADITIVO y esta demostrado como tal (seccion 5).
+
+EN  Installability as an app on iPhone and Android, with no change to technical
+    content. The published tool (v2.6 · 2026-07-15) keeps all its data, filters,
+    SAG/APVMA/ACVM cross-references and EU status intact. The patch is strictly
+    ADDITIVE and is proven to be so (section 5).
+
+-------------------------------------------------------------------------------
+ 2. AUDITORIA PREVIA DEL REPOSITORIO  /  PRE-FLIGHT AUDIT
+-------------------------------------------------------------------------------
+Repositorio  : colvinseed/Productos-fitosanitarios-SPS  (rama main)
+URL publicada: https://colvinseed.github.io/Productos-fitosanitarios-SPS/
+
+  index.html ................... 870.428 bytes  (HTTP 200)
+  .nojekyll .................... presente
+  manifest.json ................ HTTP 404  -> no existia empaquetado previo
+  sw.js ........................ HTTP 404  -> no existia empaquetado previo
+  fetch() en ejecucion ......... 0
+  XMLHttpRequest ............... 0
+  navigator.serviceWorker ...... 0
+  <meta name="theme-color"> .... 0
+  rel="manifest" ............... 0
+
+CONSECUENCIA TECNICA
+ES  La aplicacion es AUTOCONTENIDA: los tres modulos (pg-malezas, pg-plagas,
+    pg-enf) viajan inline en el atributo data-doc de sus iframes, y la app no
+    realiza ninguna peticion de red en ejecucion. Por lo tanto el offline total
+    se logra con un precache minimo de 9 recursos, sin dependencias de terceros.
+EN  The app is SELF-CONTAINED: the three modules ship inline via the data-doc
+    attribute of their iframes and the app performs no runtime network request.
+    Full offline capability therefore needs a 9-resource precache only.
+
+TRAMPA DETECTADA  /  PITFALL FOUND
+ES  '</body>' aparece 4 veces en index.html y '</head>' tambien 4 veces: una del
+    documento contenedor y tres dentro de los data-doc de los modulos. Un
+    buscar-y-reemplazar a mano habria inyectado el registro del service worker
+    DENTRO de un modulo, rompiendolo. Por eso el parche se aplica por script con
+    anclas verificadas como unicas.
+EN  '</body>' and '</head>' each occur 4 times: once in the shell document and
+    three times inside the modules' data-doc payloads. A manual find-and-replace
+    would have injected the service-worker registration INSIDE a module. Hence
+    the scripted patch with uniqueness-verified anchors.
+
+-------------------------------------------------------------------------------
+ 3. LOGO Y ICONOS  /  LOGO AND ICONS
+-------------------------------------------------------------------------------
+Fuente del icono: el propio PNG incrustado en index.html (data URI).
+  Dimensiones ....... 140 x 120 px, RGBA, fondo transparente
+  Peso .............. 13.929 bytes
+  Color ............. monocromo #194F7B (2.490 px exactos en RGB 25,79,123)
+  Repeticiones ...... 4 (shell + 3 iframes)
+
+DISCREPANCIA DE PALETA A RESOLVER  /  PALETTE DISCREPANCY TO RESOLVE
+ES  El CSS del sitio define --verde:#14366E (azul marino institucional), pero el
+    PNG del logo es #194F7B. Son dos azules distintos coexistiendo. Resuelto sin
+    repintar el logo: en la variante por defecto la marca va en BLANCO sobre
+    fondo #14366E, con lo que el conflicto cromatico desaparece.
+EN  The site CSS uses --verde:#14366E while the embedded logo PNG is #194F7B —
+    two different blues. Resolved without recolouring the logo: in the default
+    variant the mark is WHITE on a #14366E field, so the clash disappears.
+
+METODO DE ESCALADO
+ES  El logo es de dos tonos. En vez de reescalar RGBA (que arrastra franjas de
+    color premultiplicado en los bordes) se reescala SOLO el canal alfa con
+    LANCZOS y se recompone pintando color plano con esa mascara. Necesario
+    porque la fuente es de 140 px y el destino mayor es 512 px (factor 3,66x).
+EN  Two-tone source. Instead of RGBA resampling (which drags premultiplied
+    colour fringes), only the alpha channel is resampled with LANCZOS and a flat
+    colour is composited through that mask. Required because the source is
+    140 px and the largest target is 512 px (3.66x upscale).
+
+SET GENERADO — VARIANTE B (POR DEFECTO): fondo #14366E, marca blanca
+  icon-192.png .............. 192 px · 2.006 B · alfa · esquinas r = 22 %
+  icon-512.png .............. 512 px · 7.878 B · alfa · esquinas r = 22 %
+  icon-maskable-192.png ..... 192 px · 2.165 B · opaco · a sangre · marca 58 %
+  icon-maskable-512.png ..... 512 px · 8.077 B · opaco · a sangre · marca 58 %
+  apple-touch-icon.png ...... 180 px · 2.602 B · opaco · cuadrado sin redondeo
+  favicon-32.png ............  32 px ·   434 B · opaco · marca 82 %
+  TOTAL ..................... 23.162 B (22,6 KiB)
+
+SET ALTERNATIVO — VARIANTE A (carpeta alt_blanco/): fondo blanco, marca #194F7B
+  TOTAL ..................... 25.656 B (25,1 KiB)
+  Para adoptarla: copiar los 6 archivos de alt_blanco/ a la raiz, sobrescribiendo.
+  No requiere cambiar manifest.json ni el parche (los nombres son identicos).
+  Si se adopta, conviene cambiar tambien en manifest.json
+  "background_color" a "#FFFFFF" para que la pantalla de arranque no quede azul
+  detras de un icono blanco.
+
+DESVIACIONES DELIBERADAS DEL PATRON  /  DELIBERATE DEVIATIONS
+ES  a) apple-touch-icon (180 px) es CUADRADO y OPACO por diseno: iOS aplica su
+       propio squircle y compone la transparencia sobre NEGRO. Entregarlo con
+       alfa produciria esquinas negras en la pantalla de inicio.
+    b) favicon-32 omite redondeo: a 32 px el radio se pierde y solo consume
+       pixeles utiles.
+    c) Los "maskable" llevan la marca al 58 % del lado, no al 74 %. Android
+       recorta hasta un circulo de 80 % de diametro; el 58 % deja margen ante
+       recortes agresivos de lanzadores de terceros.
+
+-------------------------------------------------------------------------------
+ 4. ESTRATEGIA DE CACHE  /  CACHING STRATEGY
+-------------------------------------------------------------------------------
+Cache activa: fito-sps-v2.6.0   (constante CACHE_VERSION en sw.js)
+
+  Navegacion (document) ..... NETWORK-FIRST, tope 6 s, respaldo en cache
+  Assets (iconos, manifest) . STALE-WHILE-REVALIDATE
+  Otros origenes ............ sin intervencion (no se cachea creativecommons.org)
+  Metodos distintos de GET .. sin intervencion
+
+FUNDAMENTO DE NETWORK-FIRST EN LA NAVEGACION
+ES  Todos los datos regulatorios viven dentro de index.html. "Actualizar los
+    datos" equivale exactamente a "descargar un index.html nuevo". Un cache-first
+    dejaria congelados los registros SAG/APVMA/ACVM hasta un borrado manual, lo
+    que es inaceptable en una herramienta de referencia regulatoria. Se paga el
+    costo de una comprobacion de red al abrir; a cambio, un despliegue nuevo se
+    ve en el arranque siguiente.
+EN  All regulatory data lives inside index.html, so "refreshing the data" is
+    exactly "downloading a new index.html". Cache-first would freeze the
+    SAG/APVMA/ACVM registers until a manual purge — unacceptable in a regulatory
+    reference tool. The cost is one network check on open; the benefit is that a
+    new deployment appears on the next launch.
+
+PRECACHE PIEZA POR PIEZA, NO cache.addAll()
+ES  addAll() rechaza el lote completo si UN solo recurso devuelve 404, lo que
+    dejaria el service worker sin instalar y la app sin funcionamiento offline.
+    Cacheando pieza por pieza, un asset ausente degrada esa pieza, no todo.
+
+ADVERTENCIA SOBRE EL TRUCO ?x=1
+ES  Anexar ?x=1 a la URL NO evade un service worker: el SW intercepta la
+    peticion antes de que salga a la red. El unico mecanismo fiable es cambiar
+    CACHE_VERSION en el despliegue, que purga las caches anteriores en
+    'activate'. Complementariamente, Alt/Option + clic en el boton
+    "Actualizaciones" fuerza purga total y recarga (el clic normal conserva su
+    funcion de abrir el panel de fuentes; el enganche usa captura y solo actua
+    con la tecla pulsada).
+EN  Appending ?x=1 does NOT bypass a service worker. The only reliable mechanism
+    is bumping CACHE_VERSION, which purges older caches on 'activate'.
+    Additionally, Alt/Option + click on the "Actualizaciones" button forces a
+    full purge and reload; a plain click keeps its original behaviour.
+
+-------------------------------------------------------------------------------
+ 5. PRUEBA DE INTEGRIDAD DEL PARCHE  /  PATCH INTEGRITY PROOF
+-------------------------------------------------------------------------------
+  Anclas (verificadas UNICAS antes de escribir):
+    ANCLA_HEAD  = '</style></head>'                        -> 1 ocurrencia
+    ANCLA_FINAL = "  show('malezas');\n})();\n</script>\n</body></html>"
+                                                           -> 1 ocurrencia
+
+  index.html original ....... 870.428 bytes · sha256 702051a784f3445d...
+  index.html parcheado ...... 873.316 bytes · sha256 de9f5d3bdb133157...
+  Bytes anadidos ............ 2.888  (+0,332 %)
+  Lineas anadidas ........... 62
+  Contenido tecnico alterado. NINGUNO
+
+  Metodo de prueba: tras insertar, se revierten los dos bloques en memoria y se
+  compara con el original byte a byte y por SHA-256. El script ABORTA sin
+  escribir si la comparacion falla. Resultado: SUPERADA.
+
+  Validaciones adicionales ejecutadas en sesion:
+    manifest.json ............ JSON valido · 5 iconos · display standalone
+    sw.js .................... node --check OK
+    bloque de registro ....... node --check OK (1.953 caracteres)
+    rel="manifest" ........... 1 ocurrencia, ANTES de </head> del contenedor
+    serviceWorker.register ... 1 ocurrencia
+    ubicacion del bloque ..... offset 3.809, anterior al primer iframe (24.506)
+
+-------------------------------------------------------------------------------
+ 6. DESPLIEGUE  /  DEPLOYMENT
+-------------------------------------------------------------------------------
+ADVERTENCIA (Restricciones del Proyecto, seccion F.29)
+ES  Codigo, assets y datos derivados deben quedar en el repositorio GitHub, no
+    solo en la carpeta de salida de esta sesion. La carpeta de salida es volatil.
+EN  Code, assets and derived data must land in the GitHub repository, not only in
+    this session's output folder, which is volatile.
+
+Archivos a subir a la RAIZ del repositorio colvinseed/Productos-fitosanitarios-SPS:
+
+    index.html                (SUSTITUYE al actual)
+    manifest.json             (nuevo)
+    sw.js                     (nuevo)
+    icon-192.png              (nuevo)
+    icon-512.png              (nuevo)
+    icon-maskable-192.png     (nuevo)
+    icon-maskable-512.png     (nuevo)
+    apple-touch-icon.png      (nuevo)
+    favicon-32.png            (nuevo)
+
+Condiciones que ya se cumplen y no requieren accion:
+    HTTPS ......... GitHub Pages sirve por HTTPS (requisito del service worker)
+    Alcance ....... sw.js en la raiz del repo limita el scope al subdirectorio
+                    /Productos-fitosanitarios-SPS/, que es exactamente la app
+    .nojekyll ..... presente
+
+Recordatorio operativo: en GitHub Pages el despliegue solo se dispara con un
+commit. Subir los archivos por la interfaz web ya constituye commit.
+
+-------------------------------------------------------------------------------
+ 7. INSTALACION EN TERRENO  /  FIELD INSTALLATION
+-------------------------------------------------------------------------------
+iPhone / iPad (Safari — obligatorio, Chrome en iOS no instala PWA)
+  1. Abrir https://colvinseed.github.io/Productos-fitosanitarios-SPS/
+  2. Boton Compartir  ->  "Agregar a pantalla de inicio"
+  3. Confirmar el nombre "Fitosanitario"  ->  Agregar
+
+Android (Chrome o Edge)
+  1. Abrir la misma direccion
+  2. Menu de tres puntos  ->  "Instalar aplicacion" / "Agregar a pantalla de
+     inicio". En muchos equipos aparece un banner automatico de instalacion.
+
+Actualizacion de una app ya instalada
+  Cerrar la aplicacion POR COMPLETO (retirarla del conmutador de apps, no solo
+  minimizarla) y reabrirla. El service worker toma el control de la version
+  nueva en el arranque en frio. Si persiste una version antigua:
+  Alt/Option + clic en "Actualizaciones" fuerza la purga.
+
+-------------------------------------------------------------------------------
+ 8. PENDIENTE DE VERIFICACION EN DISPOSITIVO  /  PENDING DEVICE VERIFICATION
+-------------------------------------------------------------------------------
+ES  Los siguientes puntos NO pudieron comprobarse desde este entorno y requieren
+    revision en equipo real:
+
+    a) Barra de estado en iOS. Se fijo apple-mobile-web-app-status-bar-style =
+       "default" por ser la opcion que NO exige tocar el CSS. La alternativa
+       "black-translucent" da un aspecto mas integrado pero obliga a agregar
+       padding con env(safe-area-inset-top) al elemento #databar, es decir, a
+       modificar el CSS del contenedor. No se hizo porque la instruccion fue no
+       tocar el contenido. Verificar en iPhone si el texto de la barra de estado
+       queda legible sobre el azul #14366E; si no, se decide entonces.
+
+    b) Apariencia del icono. La inspeccion visual del logo no se renderizo en
+       este entorno; la geometria se caracterizo por perfil de canal alfa, no por
+       apreciacion estetica. Revisar _PREVIEW_iconos.png y elegir entre
+       variante B (por defecto) y variante A (alt_blanco/).
+
+    c) Pantallas de arranque iOS (apple-touch-startup-image). No incluidas: iOS
+       exige un archivo por combinacion de resolucion y orientacion (mas de 20
+       declaraciones). Sin ellas iOS muestra una pantalla de color plano
+       #14366E, que es aceptable. Se puede agregar despues si se solicita.
+
+    d) Comportamiento de los iframes en modo standalone. El patron data-doc no
+       hace peticiones de red, por lo que no deberia haber diferencia respecto al
+       navegador, pero conviene confirmar que los tres modulos cargan tras un
+       arranque offline.
+
+-------------------------------------------------------------------------------
+ 9. INVENTARIO DE LA ENTREGA  /  DELIVERABLES
+-------------------------------------------------------------------------------
+  RAIZ DESPLEGABLE
+    index.html ................ 873.316 B  parcheado, listo para subir
+    manifest.json .............   1.347 B
+    sw.js .....................   6.722 B
+    6 archivos de icono .......  23.162 B  (variante B)
+
+  ALTERNATIVA
+    alt_blanco/ ...............  25.656 B  6 iconos, variante A
+
+  FUENTE Y TRAZABILIDAD
+    build_icons.py ............ v1.0  generacion reproducible de iconos
+    aplicar_parche.py ......... v1.0  parcheo con prueba de integridad
+    index_orig.html ........... 870.428 B  original intacto, para revertir
+    logo_sps.png ..............  13.929 B  logo extraido del data URI
+    _PREVIEW_iconos.png ....... hoja comparativa de ambas variantes
+    FICHA_PWA.txt ............. este documento
+
+===============================================================================
+ (c) 2026 Winston Colvin — South Pacific Seeds Chile S.A.
+ Todos los derechos reservados. Prohibida la reproduccion total o parcial, por
+ cualquier medio, sin autorizacion expresa y por escrito del autor.
+ All rights reserved. No reproduction in whole or in part, by any means, without
+ the author's express written permission.
+===============================================================================

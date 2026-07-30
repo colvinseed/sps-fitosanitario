@@ -40,20 +40,6 @@
   #updpanel .card{background:#fff;max-width:660px;width:100%;max-height:86vh;overflow:auto;border-radius:14px;padding:20px 22px 22px;box-shadow:0 14px 46px rgba(0,0,0,.35);}
   #updpanel h2{margin:0;font-size:17px;color:var(--verde);}
   #updclose{border:0;background:#e5eaf1;width:30px;height:30px;border-radius:8px;font-size:15px;cursor:pointer;color:var(--txt2);}
-
-<!-- ==== PWA · Fitosanitario SPS · v1.0 · 2026-07-30 · bloque aditivo ==== -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#14366E">
-<meta name="color-scheme" content="light">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Fitosanitario">
-<meta name="application-name" content="Fitosanitario SPS">
-<!-- ==== fin bloque PWA (cabecera) ==== -->
 </style></head>
 <body><div class="shell">
   <div id="databar">Datos vigentes: SAG Chile 01-10-2025 · APVMA Australia 24-06-2026 · ACVM Nueva Zelanda 07-2026 · Estatus UE 07-07-2026 — <b>verifique siempre la etiqueta autorizada antes de aplicar</b></div>
@@ -2761,52 +2747,4 @@ render();
   show('malezas');
 })();
 </script>
-
-<!-- ==== PWA · Fitosanitario SPS · registro del service worker · bloque aditivo ==== -->
-<script>
-(function(){
-  "use strict";
-  if (!('serviceWorker' in navigator)) return;
-  if (location.protocol !== 'https:' && location.hostname !== 'localhost') return;
-
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('sw.js', { scope: './' })
-      .then(function(reg){
-        /* Si ya hay un SW controlando y aparece uno nuevo en espera, se le
-           ordena tomar el control de inmediato. La version nueva queda activa
-           al siguiente arranque en frio (cerrar por completo y reabrir). */
-        reg.addEventListener('updatefound', function(){
-          var nuevo = reg.installing;
-          if (!nuevo) return;
-          nuevo.addEventListener('statechange', function(){
-            if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
-              nuevo.postMessage({ tipo: 'SKIP_WAITING' });
-            }
-          });
-        });
-        /* Comprobacion de actualizacion al abrir y cada 60 min de uso. */
-        try { reg.update(); } catch(e){}
-        setInterval(function(){ try { reg.update(); } catch(e){} }, 3600000);
-      })
-      .catch(function(){ /* sin service worker la app funciona online igual */ });
-
-    /* Purga manual de cache: se engancha al boton existente
-       "Actualizaciones" solo con Alt/Option pulsado, para no interferir con su
-       funcion normal de abrir el panel de fuentes. */
-    var b = document.getElementById('shellupd');
-    if (b) b.addEventListener('click', function(ev){
-      if (!ev.altKey) return;
-      ev.stopImmediatePropagation();
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ tipo: 'PURGAR' });
-      }
-      if (window.caches && caches.keys) {
-        caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })
-              .then(function(){ location.reload(); });
-      } else { location.reload(); }
-    }, true);
-  });
-})();
-</script>
-<!-- ==== fin bloque PWA (registro) ==== -->
 </body></html>

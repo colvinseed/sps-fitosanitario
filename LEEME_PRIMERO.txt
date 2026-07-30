@@ -1,0 +1,93 @@
+===============================================================================
+ LEEME PRIMERO — DESPLIEGUE  /  READ ME FIRST — DEPLOYMENT
+ Fitosanitario SPS · empaquetado PWA · v1.0 · 30-07-2026
+ (c) 2026 Winston Colvin — South Pacific Seeds Chile S.A.
+===============================================================================
+
+DESTINO
+  Repositorio : colvinseed/Productos-fitosanitarios-SPS   (rama main)
+  URL         : https://colvinseed.github.io/Productos-fitosanitarios-SPS/
+
+ES  El nivel superior de este ZIP ES la raiz del repositorio. Descomprima
+    directamente sobre la carpeta del clon local, acepte la sustitucion de
+    index.html, y haga commit + push.
+EN  The top level of this ZIP IS the repository root. Extract straight over your
+    local clone folder, accept the index.html replacement, commit and push.
+
+-------------------------------------------------------------------------------
+ QUE SE SUBE A LA RAIZ  /  WHAT GOES IN THE ROOT
+-------------------------------------------------------------------------------
+  index.html ................ 873.316 B   SUSTITUYE al actual (parcheado)
+  manifest.json .............   1.347 B   nuevo
+  sw.js .....................   6.722 B   nuevo
+  icon-192.png ..............   2.006 B   nuevo
+  icon-512.png ..............   7.878 B   nuevo
+  icon-maskable-192.png .....   2.165 B   nuevo
+  icon-maskable-512.png .....   8.077 B   nuevo
+  apple-touch-icon.png ......   2.602 B   nuevo
+  favicon-32.png ............     434 B   nuevo
+
+  NO se toca .nojekyll ni README.md. Ya estan correctos.
+
+-------------------------------------------------------------------------------
+ CARPETAS AUXILIARES  /  AUXILIARY FOLDERS
+-------------------------------------------------------------------------------
+  alt_blanco/   Variante A de iconos: fondo blanco, marca #194F7B.
+                Para adoptarla: copiar los 6 archivos a la raiz sobrescribiendo
+                Y cambiar en manifest.json  "background_color": "#FFFFFF"
+                (si no, la pantalla de arranque queda azul tras un icono blanco).
+
+  _fuente/      Trazabilidad: build_icons.py, aplicar_parche.py, index_orig.html
+                (original intacto para revertir), logo_sps.png, preview.
+
+  AVISO sobre _fuente/  ES  El repositorio tiene .nojekyll, por lo que GitHub
+  Pages SI publicaria _fuente/ — incluido index_orig.html en
+  .../Productos-fitosanitarios-SPS/_fuente/index_orig.html
+  Si no desea publicarlo, elija una de estas tres:
+      a) dejar _fuente/ FUERA del clon (archivarlo en otra ubicacion), o
+      b) agregar la linea  _fuente/  a .gitignore del repositorio, o
+      c) subirlo de todos modos: no hay ningun enlace hacia esa ruta y el
+         contenido publicado ya es el mismo index.html.
+  Restriccion F.29 del Proyecto exige que codigo y assets derivados queden
+  versionados. La opcion (b) los mantiene en el clon local sin publicarlos; para
+  cumplir F.29 en sentido estricto, la opcion (c) es la unica que los versiona.
+
+-------------------------------------------------------------------------------
+ DESPUES DEL PUSH  /  AFTER THE PUSH
+-------------------------------------------------------------------------------
+  1. GitHub -> pestana Actions: debe aparecer "pages build and deployment".
+     El despliegue en Pages SOLO se dispara con un commit.
+  2. Abrir la URL en el telefono y instalar:
+       iPhone  Safari (obligatorio; Chrome en iOS no instala PWA)
+               Compartir -> "Agregar a pantalla de inicio"
+       Android Chrome o Edge: menu de tres puntos -> "Instalar aplicacion"
+  3. Si ya tenia la app instalada: cerrarla POR COMPLETO (retirarla del
+     conmutador de apps, no minimizarla) y reabrirla.
+
+-------------------------------------------------------------------------------
+ EN CADA DESPLIEGUE FUTURO  /  ON EVERY FUTURE DEPLOYMENT
+-------------------------------------------------------------------------------
+  Editar UNA linea en sw.js:
+
+        const CACHE_VERSION = 'fito-sps-v2.6.0';   ->   'fito-sps-v2.6.1'
+
+  Sin ese cambio de nombre el navegador puede servir el index.html anterior de
+  forma indefinida. Anexar ?x=1 a la URL NO sirve: el service worker intercepta
+  la peticion antes de que salga a la red.
+
+  Purga de emergencia en el dispositivo: Alt/Option + clic sobre el boton
+  "Actualizaciones". El clic normal conserva su funcion habitual.
+
+-------------------------------------------------------------------------------
+ REVERSION  /  ROLLBACK
+-------------------------------------------------------------------------------
+  Restituir _fuente/index_orig.html como index.html en la raiz y borrar
+  manifest.json y sw.js. Los iconos pueden quedar: sin manifiesto ni service
+  worker son inertes. Los usuarios con la app ya instalada deben desinstalarla
+  desde la pantalla de inicio para eliminar el service worker registrado.
+
+===============================================================================
+ (c) 2026 Winston Colvin — South Pacific Seeds Chile S.A.
+ Todos los derechos reservados. Prohibida la reproduccion total o parcial, por
+ cualquier medio, sin autorizacion expresa y por escrito del autor.
+===============================================================================
