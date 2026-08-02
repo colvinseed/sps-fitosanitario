@@ -1,33 +1,51 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-build_icons.py - v2.0 - 30-07-2026
-Juego de iconos de aplicacion "Pathology Forecast" derivado de
-Pathology_Forecast_Logo_2.png (marca combinada: simbolo lupa-hoja sobre
-monograma SPS en filigrana).
+build_icons.py - v3.1 - 02-08-2026
+Juego de iconos de aplicacion derivado de LOGO_PATOLOGIA.png
+(marca combinada: circulo hoja-escudo-esporas sobre monograma SPS en
+filigrana, con rotulo FITOSANITARIOS al pie).
 (c) 2026 Winston Colvin - South Pacific Seeds Chile
+
+CAMBIOS v3.1 respecto de v3.0:
+  - SIN RECORTE. Se usa el lienzo completo de 512x512: simbolo, filigrana SPS
+    y rotulo FITOSANITARIOS. La v3.0 recortaba al simbolo y dejaba el rotulo
+    fuera; criterio descartado por decision de marca.
+  - SIN ESQUINAS REDONDEADAS. Los cuatro archivos son cuadrados opacos sobre
+    blanco. iOS y Android aplican por su cuenta la mascara de la plataforma;
+    aplicarla ademas en el archivo producia un doble redondeo y recortaba
+    contenido.
+  - El lienzo de origen ya cumple la zona segura para mascaras de Android:
+    el contenido ocupa 409 x 387 px sobre 512, es decir el 80 % del ancho y
+    el 75,6 % del alto, centrado. Por eso conservar el lienzo intacto es la
+    opcion que mas contenido preserva bajo cualquier recorte del sistema.
+
+CAMBIOS v3.0 respecto de v2.0:
+  - Fuente nueva: LOGO_PATOLOGIA.png, 512x512 px, RGBA totalmente opaco.
+    La v2.0 trabajaba sobre un lienzo de ~1280 px; todas las constantes de
+    geometria se volvieron a medir y no son trasladables.
 """
 import os
 import numpy as np
 from PIL import Image, ImageDraw
 
-SRC = "/mnt/user-data/uploads/Pathology_Forecast_Logo_2.png"
-OUT = "/home/claude/out"
+SRC = os.path.join(os.path.dirname(__file__), "..", "assets",
+                   "logo-patologia-fuente.png")
+OUT = os.path.join(os.path.dirname(__file__), "..")
 os.makedirs(OUT, exist_ok=True)
 
 WHITE = (255, 255, 255)
 
-# --- Geometria medida sobre la fuente (no supuesta) -----------------------
-# Bandas de contenido por perfil de filas: 135-830 grafico,
-# 857-938 "PATHOLOGY", 949-1006 "FORECAST".
-BOX_WATERMARK = (221, 135, 1074, 831)   # monograma SPS en filigrana
-BOX_SYMBOL    = (417, 339,  848, 813)   # lupa + hoja + esporas
+# --- Geometria medida sobre la fuente (perfiles de fila y columna) --------
+# Simbolo (circulo + escudo + hoja + esporas): 157-345 x, 139-345 y.
+# Rotulo "FITOSANITARIOS": filas 369-396.  Filigrana SPS: desde la fila 39.
+# Simbolo 157-345 x, 139-345 y. Rotulo 369-396 y. Filigrana desde 39 y.
+# Contenido total: filas 39-425, columnas 56-464.
+BOX_CONTENT = (56, 39, 464, 425)
 
-# Encuadre elegido: cuadrado de 760 px centrado en (640, 520).
-FRAME_SIDE   = 760
-FRAME_CENTER = (640, 558)
-
-RADIUS = 0.225                          # squircle iOS / Android
+# El encuadre es el lienzo completo: no se recorta nada.
+FRAME_CENTER = (256, 256)
+FRAME_SIDE = 512
 
 
 def _frame(side, center):
@@ -36,13 +54,12 @@ def _frame(side, center):
     return (cx - h, cy - h, cx + h, cy + h)
 
 
-
 def clean(img):
     """Reduce el ruido de la fuente sin alterar el diseno:
-       - los pixeles casi-blancos pasan a blanco puro (59 % del lienzo);
+       - los pixeles casi-blancos pasan a blanco puro;
        - los grises de la filigrana se cuantizan a escalones de 8 niveles.
-       Baja el peso del PNG a cerca de un tercio y elimina el moteado
-       propio del archivo de origen. No toca los verdes ni el carbon."""
+       Baja el peso del PNG y elimina el moteado del archivo de origen.
+       No toca los verdes ni el carbon."""
     a = np.asarray(img.convert("RGB")).astype(int)
     r, g, b = a[:, :, 0], a[:, :, 1], a[:, :, 2]
     sat = np.abs(r - g) + np.abs(g - b) + np.abs(r - b)
@@ -56,34 +73,18 @@ def clean(img):
     return Image.fromarray(a.astype("uint8"), "RGB")
 
 
-def compose(size, rounded, simplified=False):
-    """rounded=False   -> cuadrado a sangre (requisito de apple-touch-icon)
-       rounded=True    -> squircle con esquinas transparentes
-       simplified=True -> solo el simbolo; reservado para 32 px"""
+def compose(size):
+    """Cuadrado opaco sobre blanco, sin recorte ni redondeo, en todos los
+       tamanos. El sobremuestreo x4 previo a la reduccion final evita el
+       aliaseado en los trazos finos del rotulo."""
     ss = 4
     S = size * ss
     src = Image.open(SRC).convert("RGB")
-
-    if simplified:
-        x0, y0, x1, y1 = BOX_SYMBOL
-        pad = int(0.13 * max(x1 - x0, y1 - y0))
-        s = max(x1 - x0, y1 - y0) + 2 * pad
-        cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
-        crop = src.crop(_frame(s, (cx, cy)))
-    else:
-        crop = src.crop(_frame(FRAME_SIDE, FRAME_CENTER))
+    crop = src.crop(_frame(FRAME_SIDE, FRAME_CENTER))
 
     canvas = Image.new("RGB", (S, S), WHITE)
     canvas.paste(clean(crop).resize((S, S), Image.LANCZOS), (0, 0))
-    out = canvas.convert("RGBA")
-
-    if rounded:
-        m = Image.new("L", (S, S), 0)
-        ImageDraw.Draw(m).rounded_rectangle(
-            [0, 0, S - 1, S - 1], radius=int(RADIUS * S), fill=255)
-        out.putalpha(m)
-
-    return out.resize((size, size), Image.LANCZOS)
+    return canvas.resize((size, size), Image.LANCZOS).convert("RGBA")
 
 
 def save_png8(img, path, colors, flatten_to=None):
@@ -99,20 +100,21 @@ def save_png8(img, path, colors, flatten_to=None):
     return os.path.getsize(path)
 
 
-#          archivo                px  redondeo  colores  aplanar  simplificado
+#          archivo                px  colores
 TARGETS = [
-    ("apple-touch-icon.png", 180, False,  48, WHITE, False),
-    ("icon-192.png",         192, True,   48, None,  False),
-    ("icon-512.png",         512, True,   64, None,  False),
-    ("favicon-32.png",        32, True,    16, None,  True),
+    ("apple-touch-icon.png", 180,  64),
+    ("icon-192.png",         192,  64),
+    ("icon-512.png",         512,  96),
+    ("favicon-32.png",        32,  32),
 ]
 
 if __name__ == "__main__":
-    print(f"{'archivo':<22}{'px':>5}{'squircle':>10}{'simpl.':>8}{'bytes':>8}{'KiB':>7}")
+    print(f"encuadre: lienzo completo {FRAME_SIDE} px, sin recorte ni redondeo")
+    print(f"{'archivo':<22}{'px':>5}{'bytes':>9}{'KiB':>7}")
     tot = 0
-    for name, size, rnd, cols, flat, simp in TARGETS:
-        n = save_png8(compose(size, rnd, simp), os.path.join(OUT, name), cols, flat)
+    for name, size, cols in TARGETS:
+        # Todos se aplanan sobre blanco: sin canal alfa, sin esquinas cortadas.
+        n = save_png8(compose(size), os.path.join(OUT, name), cols, WHITE)
         tot += n
-        print(f"{name:<22}{size:>5}{('si' if rnd else 'no'):>10}"
-              f"{('si' if simp else 'no'):>8}{n:>8}{n/1024:>7.1f}")
-    print(f"{'TOTAL':<22}{'':>5}{'':>10}{'':>8}{tot:>8}{tot/1024:>7.1f}")
+        print(f"{name:<22}{size:>5}{n:>9}{n/1024:>7.1f}")
+    print(f"{'TOTAL':<22}{'':>5}{tot:>9}{tot/1024:>7.1f}")
