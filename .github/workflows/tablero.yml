@@ -1,5 +1,7 @@
 name: Tablero de condiciones SPS (horario)
 
+# Versión 1.2 · 2026-08-01 · © 2026 Winston Colvin — South Pacific Seeds Chile
+#
 # Actualiza SOLO las condiciones actuales de la página de inicio, cada hora.
 # Es una tarea liviana: una única petición al JSON del mapa de Agromet, que
 # trae de una vez las condiciones de todas las estaciones.
@@ -10,6 +12,17 @@ name: Tablero de condiciones SPS (horario)
 #
 # Minuto 17 (no en punto) para evitar la congestión de las horas redondas, que
 # es cuando GitHub encola los trabajos programados de todo el mundo.
+#
+# CAMBIOS v1.2 (2026-08-01):
+#   · "pip install requests" -> "pip install -r requirements.txt".
+#     agromet_tablero.py importa agromet_extractor.py, que a su vez requiere
+#     pandas. Instalando solo requests, la importación fallaba y el script
+#     terminaba sin escribir nada, con la corrida en VERDE. Este fue el motivo
+#     de que el tablero dejara de actualizarse.
+#   · Se agrega "git pull --rebase" antes del push. Ahora que este workflow
+#     vuelve a generar commits horarios, puede chocar con el commit de
+#     daily.yml sobre condiciones.json; sin rebase el push falla por
+#     non-fast-forward.
 
 on:
   schedule:
@@ -37,7 +50,9 @@ jobs:
           python-version: '3.12'
 
       - name: Instalar dependencias
-        run: pip install requests
+        # IMPORTANTE: requirements.txt completo (pandas incluido). No basta con
+        # requests: agromet_tablero.py -> agromet_extractor.py -> pandas.
+        run: pip install -r requirements.txt
 
       - name: Extraer condiciones actuales (mapa Agromet)
         run: python src/agromet_tablero.py --out condiciones.json
@@ -49,4 +64,7 @@ jobs:
           git add condiciones.json
           # Si no hubo cambios, no se genera commit (evita ruido en el historial)
           git diff --staged --quiet || git commit -m "Condiciones actuales $(date -u +'%Y-%m-%d %H:%M UTC')"
+          # Reincorporar cualquier commit hecho entretanto (p. ej. la corrida
+          # diaria) antes de publicar, para no fallar por non-fast-forward.
+          git pull --rebase origin main
           git push

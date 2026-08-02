@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sistema de pronóstico fitosanitario — SPS Chile</title>
+<!-- template.html v3.2 · 2026-08-01 · © 2026 Winston Colvin — South Pacific Seeds Chile
+     v3.1: se incorpora el logo corporativo SPS en la banda azul superior. El logo
+           va embebido en base64 (versión monocroma blanca, PNG con alfa) para que
+           la cabecera no dependa de un archivo externo al incrustar la página.
+     v3.2: el sello de versión, fecha de corrida y propiedad se traslada de la
+           cabecera al pie, en una sola línea. IMPORTANTE: la clase .stamp se
+           conserva sin cambios porque setUpdStamps() la localiza con
+           querySelector('.stamp') y extrae de ahí la fecha por expresión regular
+           para replicarla en los ocho .upd-stamp de las páginas de enfermedad.
+           Cambiar esa clase o el formato AAAA-MM-DD HH:MM rompe esa réplica. -->
 <!-- App icons / PWA — Pathology Forecast · v2.2 · 30-07-2026 -->
 <meta name="theme-color" content="#14366E">
 <link rel="manifest" href="./manifest.json">
@@ -26,8 +36,17 @@
   header .wrap{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;padding-bottom:0}
   header h1{font-size:20px;font-weight:600;margin-bottom:2px}
   header p{font-size:13px;opacity:.85}
+  /* Logo corporativo SPS en la banda azul. align-items:center centra el
+     isotipo respecto a las dos líneas de texto; flex-shrink:0 impide que se
+     comprima cuando el título ocupa todo el ancho disponible. */
+  header .hbrand{display:flex;align-items:center;gap:14px;min-width:0}
+  header .spslogo{height:44px;width:auto;flex-shrink:0;display:block}
   .htop{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-  .stamp{text-align:right;font-size:11px;opacity:.8;line-height:1.5}
+  /* Pie de página. .sitefoot y no .foot: esa clase ya está ocupada por el bloque
+     de notas al pie de cada página de enfermedad. */
+  .sitefoot{border-top:1px solid var(--hair);margin-top:26px}
+  .sitefoot .wrap{padding-top:9px;padding-bottom:12px}
+  .stamp{text-align:center;font-size:10px;color:var(--mut);opacity:.9;line-height:1.4}
   .langtoggle{display:flex;border:1px solid rgba(255,255,255,.3);border-radius:6px;overflow:hidden}
   .langtoggle button{background:transparent;border:none;color:rgba(255,255,255,.6);padding:4px 12px;font-size:12px;cursor:pointer;font-weight:600}
   .langtoggle button.active{background:#EF9F27;color:#14366E}
@@ -150,9 +169,11 @@
     .wrap{padding:0 12px 48px}
     header .wrap{flex-direction:column;align-items:stretch;gap:10px}
     header h1{font-size:17px}
+    header .spslogo{height:34px}
+    header .hbrand{gap:10px}
     header p{font-size:12px}
-    .htop{align-items:flex-start;flex-direction:row;justify-content:space-between;width:100%}
-    .stamp{text-align:left;font-size:10px}
+    .htop{align-items:flex-end}
+    .stamp{font-size:9px;line-height:1.5}
     nav.pages button{padding:11px 12px;font-size:12.5px}
     .subnav{gap:5px}
     .subnav button{min-width:0;flex:1 1 45%;font-size:12px;padding:8px 6px}
@@ -178,10 +199,12 @@
 </head>
 <body>
 <header><div class="wrap">
-  <div><h1 data-i18n="app_title"></h1><p data-i18n="app_sub"></p></div>
+  <div class="hbrand">
+    <img class="spslogo" src="data:image/png;base64,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" alt="South Pacific Seeds Chile">
+    <div><h1 data-i18n="app_title"></h1><p data-i18n="app_sub"></p></div>
+  </div>
   <div class="htop">
     <div class="langtoggle"><button id="lang-es" class="active" onclick="setLang('es')">ES</button><button id="lang-en" onclick="setLang('en')">EN</button></div>
-    <div class="stamp">v3.0 diario · /*__UPDATED__*/<br>© 2026 Winston Colvin<br>South Pacific Seeds Chile</div>
   </div>
 </div></header>
 <nav class="pages"><div class="wrap">
@@ -346,6 +369,10 @@
 </div>
 </div>
 </div>
+
+<footer class="sitefoot"><div class="wrap">
+  <div class="stamp">v3.0 diario · /*__UPDATED__*/ · © 2026 Winston Colvin — South Pacific Seeds Chile</div>
+</div></footer>
 
 <script>
 const D = /*__DATA__*/{}/*__END__*/;

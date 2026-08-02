@@ -1,5 +1,10 @@
 name: Pronóstico fitosanitario diario SPS
 
+# Versión 1.1 · 2026-08-01 · © 2026 Winston Colvin — South Pacific Seeds Chile
+# CAMBIO v1.1: se agrega "git pull --rebase" antes del push. Con el tablero
+# horario nuevamente operativo, ambos workflows escriben condiciones.json y el
+# push puede fallar por non-fast-forward si una corrida se cruza con la otra.
+
 # Disparo a las 10:07 UTC = 06:07 de Chile en INVIERNO (UTC-4).
 #
 # >>> REVISAR EN SEPTIEMBRE 2026 <<<
@@ -55,4 +60,6 @@ jobs:
           git add index.html condiciones.json
           # Commit solo si hubo cambios
           git diff --staged --quiet || git commit -m "Actualización diaria $(date -u +%Y-%m-%d\ %H:%M) UTC"
+          # Reincorporar commits del tablero horario antes de publicar.
+          git pull --rebase origin main
           git push

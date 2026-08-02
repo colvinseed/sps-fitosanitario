@@ -2,7 +2,17 @@
 """
 agromet_tablero.py · Tablero de condiciones actuales (red Agromet/INIA)
 ========================================================================
-Versión 1.0 · 2026-07-14 · © 2026 Winston Colvin — South Pacific Seeds Chile
+Versión 1.2 · 2026-08-01 · © 2026 Winston Colvin — South Pacific Seeds Chile
+
+CAMBIOS v1.2 (2026-08-01):
+  · La importación de agromet_extractor ya NO se silencia. Si falla (típicamente
+    por falta de pandas en el entorno del workflow), se informa por consola y el
+    script termina con código 1, de modo que la corrida aparezca ROJA en Actions
+    en lugar de verde-sin-commit. Requiere que tablero.yml instale
+    requirements.txt, no solo requests.
+  · os.makedirs() ya no se llama con ruta vacía. Con --out condiciones.json
+    (sin directorio), dirname() devuelve '' y os.makedirs('') lanza
+    FileNotFoundError; ahora se omite si no hay componente de directorio.
 
 Baja el JSON del MAPA de agrometeorologia.cl (distinto del formulario de
 extracción horaria) que trae, para TODAS las estaciones del país en una sola
@@ -61,13 +71,22 @@ def _clave_agromet(idp):
     fuente = 'inia' if pref.upper() == 'INIA' else 'ext'
     return f'{fuente}:{num}'
 
+# La lista de las 47 estaciones vive en agromet_extractor.py. Ese módulo importa
+# pandas; si el entorno de ejecución no lo tiene, la importación falla.
+#
+# HISTÓRICO: hasta la v1.1 este bloque capturaba la excepción en silencio y
+# dejaba ESTACIONES_SPS vacío. El script terminaba con código 0 sin escribir
+# nada, de modo que el workflow aparecía VERDE mientras el tablero llevaba días
+# sin actualizarse. Ahora el fallo se informa y se propaga.
+_IMPORT_ERROR = None
 try:
     from agromet_extractor import AGROMET_ID
     # nombre -> clave 'source:id'
     ESTACIONES_SPS = {nombre: _clave_agromet(idp)
                       for nombre, idp in AGROMET_ID.items()}
-except Exception:
+except Exception as exc:                      # noqa: BLE001
     ESTACIONES_SPS = {}
+    _IMPORT_ERROR = exc
 _HEADERS = {
     'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                    'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -227,6 +246,17 @@ if __name__ == '__main__':
     ap.add_argument('--out', default='output/condiciones.json')
     args = ap.parse_args()
 
+    # Verificación temprana: sin la lista de estaciones no hay nada que hacer.
+    # Se aborta con código 1 para que la corrida quede ROJA en Actions.
+    if not ESTACIONES_SPS and not args.all and not args.ids:
+        print('ERROR: no se pudo cargar la lista de estaciones desde '
+              'agromet_extractor.py.')
+        if _IMPORT_ERROR is not None:
+            print(f'       Causa: {type(_IMPORT_ERROR).__name__}: {_IMPORT_ERROR}')
+            print('       Si es ImportError de pandas, el workflow debe usar '
+                  '"pip install -r requirements.txt".')
+        raise SystemExit(1)
+
     if args.all:
         pedido = 'ALL'
     elif args.ids:
@@ -261,10 +291,14 @@ if __name__ == '__main__':
                   f"{c['t_min']}–{c['t_max']}°C, HR {c['hr']}%, "
                   f"lluvia hoy {c['lluvia_hoy']}mm (ayer {c['lluvia_ayer']}mm), viento {c['viento']} km/h "
                   f"[{c['vigencia']}, {c['estado']}]")
-        import os
-        os.makedirs(os.path.dirname(args.out), exist_ok=True)
+        _dir = os.path.dirname(args.out)
+        if _dir:                       # '' cuando --out no lleva directorio
+            os.makedirs(_dir, exist_ok=True)
         with open(args.out, 'w', encoding='utf-8') as f:
             json.dump(res, f, ensure_ascii=False, indent=1)
         print(f"\nGuardado en {args.out}")
     else:
-        print('Sin datos (posible 403 por restricción de red del entorno).')
+        print('Sin datos: la extracción no devolvió ninguna estación '
+              '(posible 403 por restricción de red, o token del mapa no '
+              'encontrado en el HTML de agrometeorologia.cl).')
+        raise SystemExit(1)
