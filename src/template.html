@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sistema de pronóstico fitosanitario — SPS Chile</title>
-<!-- template.html v3.2 · 2026-08-01 · © 2026 Winston Colvin — South Pacific Seeds Chile
+<!-- template.html v3.3 · 2026-08-02 · © 2026 Winston Colvin — South Pacific Seeds Chile
      v3.1: se incorpora el logo corporativo SPS en la banda azul superior. El logo
            va embebido en base64 (versión monocroma blanca, PNG con alfa) para que
            la cabecera no dependa de un archivo externo al incrustar la página.
@@ -13,14 +13,22 @@
            conserva sin cambios porque setUpdStamps() la localiza con
            querySelector('.stamp') y extrae de ahí la fecha por expresión regular
            para replicarla en los ocho .upd-stamp de las páginas de enfermedad.
-           Cambiar esa clase o el formato AAAA-MM-DD HH:MM rompe esa réplica. -->
+           Cambiar esa clase o el formato AAAA-MM-DD HH:MM rompe esa réplica.
+     v3.3: se agrega el parámetro de versión ?v=3 a las cinco referencias de
+           iconos y al manifiesto. iOS y Android indexan el icono de la pantalla
+           de inicio POR SU DIRECCIÓN; como los nombres de archivo no cambiaron
+           al renovar el logo, el sistema conservaba el icono anterior asociado
+           a esa dirección. El parámetro obliga a tratarlos como recursos
+           nuevos. AL RENOVAR LOS ICONOS EN EL FUTURO HAY QUE INCREMENTAR ESTE
+           NÚMERO, aquí y en manifest.json, o el cambio no se verá en los
+           dispositivos que ya tengan la aplicación instalada. -->
 <!-- App icons / PWA — Pathology Forecast · v2.2 · 30-07-2026 -->
 <meta name="theme-color" content="#14366E">
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<link rel="manifest" href="./manifest.json?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=3">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=3">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
