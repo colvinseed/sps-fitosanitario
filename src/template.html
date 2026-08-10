@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sistema de pronóstico fitosanitario — SPS Chile</title>
-<!-- template.html v3.3 · 2026-08-02 · © 2026 Winston Colvin — South Pacific Seeds Chile
+<!-- template.html v3.4 · 2026-08-10 · © 2026 Winston Colvin — South Pacific Seeds Chile
      v3.1: se incorpora el logo corporativo SPS en la banda azul superior. El logo
            va embebido en base64 (versión monocroma blanca, PNG con alfa) para que
            la cabecera no dependa de un archivo externo al incrustar la página.
@@ -21,7 +21,15 @@
            a esa dirección. El parámetro obliga a tratarlos como recursos
            nuevos. AL RENOVAR LOS ICONOS EN EL FUTURO HAY QUE INCREMENTAR ESTE
            NÚMERO, aquí y en manifest.json, o el cambio no se verá en los
-           dispositivos que ya tengan la aplicación instalada. -->
+           dispositivos que ya tengan la aplicación instalada.
+     v3.4: el marcador de día positivo DOWNCAST en el gráfico de mildiú velloso
+           pasa de gris #888780 y radio 3 a rojo #D62828 y radio 6, con anillo
+           blanco de 1,5 px para separarlo de las barras MILIONCAST2. Su cota
+           sube de 0,3 a 0,4 en el eje Y: es una bandera de día, no una medida,
+           y con radio 6 a la cota 0,3 el punto quedaba a menos de 1 px del eje.
+           Se igualan el punto de la leyenda y la cifra de la tarjeta.
+           NO se tocó el gris #888780 de las líneas de horas de mojado de las
+           otras enfermedades: es otro significado que comparte color. -->
 <!-- App icons / PWA — Pathology Forecast · v2.2 · 30-07-2026 -->
 <meta name="theme-color" content="#14366E">
 <link rel="manifest" href="./manifest.json?v=3">
@@ -260,13 +268,13 @@
   <div class="stations" id="m-st"></div>
   <div class="chartbox"><div class="h"><span><span data-i18n="m_intensity"></span> · <span id="m-lbl"></span></span><span class="r" id="m-reg"></span></div>
     <div class="cwrap" style="height:200px"><canvas id="m-ch"></canvas></div>
-    <div class="legend"><span><span class="dot" style="background:#BA7517"></span><span data-i18n="m_leg_mc"></span></span><span><span class="dot" style="background:#888780;border-radius:50%"></span><span data-i18n="m_leg_dc"></span></span><span><span style="width:14px;height:2px;background:#A32D2D;display:inline-block"></span><span data-i18n="m_leg_thr"></span></span></div></div>
+    <div class="legend"><span><span class="dot" style="background:#BA7517"></span><span data-i18n="m_leg_mc"></span></span><span><span class="dot" style="background:#D62828;border-radius:50%;width:12px;height:12px;box-shadow:0 0 0 1.5px #fff"></span><span data-i18n="m_leg_dc"></span></span><span><span style="width:14px;height:2px;background:#A32D2D;display:inline-block"></span><span data-i18n="m_leg_thr"></span></span></div></div>
   <div class="note" id="m-note" style="display:none" data-i18n-html="m_note"></div>
   <div class="cards">
     <div class="card"><div class="lbl" data-i18n="m_c_strong"></div><div class="val" style="color:#854F0B" id="m-s">0</div></div>
     <div class="card"><div class="lbl" data-i18n="m_c_mod"></div><div class="val" style="color:#BA7517" id="m-m">0</div></div>
     <div class="card"><div class="lbl" data-i18n="m_c_low"></div><div class="val" style="color:#EF9F27" id="m-l">0</div></div>
-    <div class="card"><div class="lbl" data-i18n="m_c_dc"></div><div class="val" style="color:#888780" id="m-d">0</div></div></div>
+    <div class="card"><div class="lbl" data-i18n="m_c_dc"></div><div class="val" style="color:#D62828" id="m-d">0</div></div></div>
   <div class="foot" data-i18n="m_foot"></div>
 </div>
 
@@ -551,7 +559,7 @@ function drawMildew(){
   dstroy('m');
   ch.m=new Chart(document.getElementById('m-ch'),{data:{labels:d.map(e=>e.f.slice(5)),datasets:[
     {type:'bar',data:d.map(e=>e.mc),backgroundColor:cols,borderRadius:2,barPercentage:0.9,categoryPercentage:0.95,order:2},
-    {type:'scatter',data:d.map(e=>e.dc===1?0.3:null),backgroundColor:'#888780',pointRadius:3,order:1}]},
+    {type:'scatter',data:d.map(e=>e.dc===1?0.4:null),backgroundColor:'#D62828',borderColor:'#fff',borderWidth:1.5,pointRadius:6,pointHoverRadius:9,order:1}]},
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
       scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,max:6,title:{display:true,text:t('m_leg_mc'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}}},
       plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>{const e=d[i.dataIndex];if(i.datasetIndex===1)return e.dc===1?'DOWNCAST: '+t('tt_pos'):'';const lv=e.mc>4?t('lvl_strong'):e.mc>2?t('lvl_mod'):e.mc>0?t('lvl_low'):t('lvl_null');let s='MILIONCAST2: '+e.mc.toFixed(1)+' ('+lv+')';if(e.tm!=null)s+=' · '+e.tm+'°C';return s;}}}}},

@@ -260,13 +260,13 @@
   <div class="stations" id="m-st"></div>
   <div class="chartbox"><div class="h"><span><span data-i18n="m_intensity"></span> · <span id="m-lbl"></span></span><span class="r" id="m-reg"></span></div>
     <div class="cwrap" style="height:200px"><canvas id="m-ch"></canvas></div>
-    <div class="legend"><span><span class="dot" style="background:#BA7517"></span><span data-i18n="m_leg_mc"></span></span><span><span class="dot" style="background:#888780;border-radius:50%"></span><span data-i18n="m_leg_dc"></span></span><span><span style="width:14px;height:2px;background:#A32D2D;display:inline-block"></span><span data-i18n="m_leg_thr"></span></span></div></div>
+    <div class="legend"><span><span class="dot" style="background:#BA7517"></span><span data-i18n="m_leg_mc"></span></span><span><span class="dot" style="background:#D62828;border-radius:50%;width:12px;height:12px;box-shadow:0 0 0 1.5px #fff"></span><span data-i18n="m_leg_dc"></span></span><span><span style="width:14px;height:2px;background:#A32D2D;display:inline-block"></span><span data-i18n="m_leg_thr"></span></span></div></div>
   <div class="note" id="m-note" style="display:none" data-i18n-html="m_note"></div>
   <div class="cards">
     <div class="card"><div class="lbl" data-i18n="m_c_strong"></div><div class="val" style="color:#854F0B" id="m-s">0</div></div>
     <div class="card"><div class="lbl" data-i18n="m_c_mod"></div><div class="val" style="color:#BA7517" id="m-m">0</div></div>
     <div class="card"><div class="lbl" data-i18n="m_c_low"></div><div class="val" style="color:#EF9F27" id="m-l">0</div></div>
-    <div class="card"><div class="lbl" data-i18n="m_c_dc"></div><div class="val" style="color:#888780" id="m-d">0</div></div></div>
+    <div class="card"><div class="lbl" data-i18n="m_c_dc"></div><div class="val" style="color:#D62828" id="m-d">0</div></div></div>
   <div class="foot" data-i18n="m_foot"></div>
 </div>
 
@@ -551,7 +551,7 @@ function drawMildew(){
   dstroy('m');
   ch.m=new Chart(document.getElementById('m-ch'),{data:{labels:d.map(e=>e.f.slice(5)),datasets:[
     {type:'bar',data:d.map(e=>e.mc),backgroundColor:cols,borderRadius:2,barPercentage:0.9,categoryPercentage:0.95,order:2},
-    {type:'scatter',data:d.map(e=>e.dc===1?0.3:null),backgroundColor:'#888780',pointRadius:3,order:1}]},
+    {type:'scatter',data:d.map(e=>e.dc===1?0.4:null),backgroundColor:'#D62828',borderColor:'#fff',borderWidth:1.5,pointRadius:6,pointHoverRadius:9,order:1}]},
     options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
       scales:{x:{ticks:{maxTicksLimit:10,font:{size:9},color:'#5a6b80'},grid:{display:false}},y:{min:0,max:6,title:{display:true,text:t('m_leg_mc'),font:{size:10},color:'#5a6b80'},ticks:{font:{size:9},color:'#5a6b80'},grid:{color:'#eef2f7'}}},
       plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>d[i[0].dataIndex].f,label:i=>{const e=d[i.dataIndex];if(i.datasetIndex===1)return e.dc===1?'DOWNCAST: '+t('tt_pos'):'';const lv=e.mc>4?t('lvl_strong'):e.mc>2?t('lvl_mod'):e.mc>0?t('lvl_low'):t('lvl_null');let s='MILIONCAST2: '+e.mc.toFixed(1)+' ('+lv+')';if(e.tm!=null)s+=' · '+e.tm+'°C';return s;}}}}},
