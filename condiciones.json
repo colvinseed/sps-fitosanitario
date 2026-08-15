@@ -1,5 +1,5 @@
 {
- "timestamp": "2026-08-15T13:34-04:00",
+ "timestamp": "2026-08-15T14:46-04:00",
  "estaciones": {
   "ext:100": {
    "id": "100",
@@ -12,13 +12,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 12.8,
-   "t_max": 15.7,
-   "hr": 87.2,
+   "t_max": 16.2,
+   "hr": 84.0,
    "lluvia_hoy": 0.0,
    "lluvia_ayer": 0.6,
-   "viento": 5.6,
-   "viento_max": 13.7,
-   "dir_viento": 217.0
+   "viento": 7.0,
+   "viento_max": 24.1,
+   "dir_viento": 228.0
   },
   "ext:101": {
    "id": "101",
@@ -31,13 +31,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 12.1,
-   "t_max": 13.1,
-   "hr": 95.4,
+   "t_max": 14.9,
+   "hr": 90.3,
    "lluvia_hoy": 0.2,
    "lluvia_ayer": 0.0,
-   "viento": 2.8,
-   "viento_max": 14.4,
-   "dir_viento": 228.0
+   "viento": 4.2,
+   "viento_max": 17.6,
+   "dir_viento": 231.0
   },
   "ext:5": {
    "id": "5",
@@ -69,13 +69,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 12.0,
-   "t_max": 13.3,
-   "hr": 92.0,
-   "lluvia_hoy": 10.8,
+   "t_max": 13.9,
+   "hr": 91.4,
+   "lluvia_hoy": 12.5,
    "lluvia_ayer": 0.0,
    "viento": 0.2,
    "viento_max": 6.7,
-   "dir_viento": 44.0
+   "dir_viento": 49.0
   },
   "ext:1029": {
    "id": "1029",
@@ -88,13 +88,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 11.9,
-   "t_max": 14.0,
-   "hr": 93.8,
-   "lluvia_hoy": 14.8,
+   "t_max": 14.1,
+   "hr": 92.8,
+   "lluvia_hoy": 16.7,
    "lluvia_ayer": 0.0,
-   "viento": 1.6,
-   "viento_max": 7.9,
-   "dir_viento": 164.0
+   "viento": 2.0,
+   "viento_max": 10.1,
+   "dir_viento": 148.0
   },
   "inia:314": {
    "id": "314",
@@ -108,12 +108,12 @@
    "vigencia": "hoy",
    "t_min": 9.9,
    "t_max": 11.8,
-   "hr": 95.6,
-   "lluvia_hoy": 5.4,
+   "hr": 94.0,
+   "lluvia_hoy": 8.6,
    "lluvia_ayer": 0.0,
-   "viento": 2.0,
-   "viento_max": 13.4,
-   "dir_viento": 102.0
+   "viento": 2.9,
+   "viento_max": 16.9,
+   "dir_viento": 106.0
   },
   "ext:150": {
    "id": "150",
@@ -126,13 +126,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 12.3,
-   "t_max": 12.7,
+   "t_max": 13.1,
    "hr": 96.1,
-   "lluvia_hoy": 7.9,
+   "lluvia_hoy": 9.9,
    "lluvia_ayer": 0.0,
    "viento": 2.9,
    "viento_max": 10.1,
-   "dir_viento": 142.0
+   "dir_viento": 145.0
   },
   "ext:118": {
    "id": "118",
@@ -147,11 +147,11 @@
    "t_min": null,
    "t_max": null,
    "hr": 0.4,
-   "lluvia_hoy": 9.3,
+   "lluvia_hoy": 11.4,
    "lluvia_ayer": 0.4,
-   "viento": 1.3,
-   "viento_max": 8.6,
-   "dir_viento": 171.0
+   "viento": 1.5,
+   "viento_max": 9.0,
+   "dir_viento": 179.0
   },
   "inia:6": {
    "id": "6",
@@ -166,11 +166,11 @@
    "t_min": 10.1,
    "t_max": 11.3,
    "hr": 93.2,
-   "lluvia_hoy": 16.0,
+   "lluvia_hoy": 21.0,
    "lluvia_ayer": 0.0,
-   "viento": 1.1,
+   "viento": 1.2,
    "viento_max": 12.1,
-   "dir_viento": 124.0
+   "dir_viento": 131.0
   },
   "inia:100": {
    "id": "100",
@@ -185,7 +185,7 @@
    "t_min": 10.8,
    "t_max": 12.6,
    "hr": 100.0,
-   "lluvia_hoy": 11.3,
+   "lluvia_hoy": 14.1,
    "lluvia_ayer": 0.0,
    "viento": 0.0,
    "viento_max": 0.0,
@@ -204,11 +204,11 @@
    "t_min": 9.8,
    "t_max": 12.0,
    "hr": 98.2,
-   "lluvia_hoy": 12.2,
+   "lluvia_hoy": 15.6,
    "lluvia_ayer": 1.2,
-   "viento": 0.0,
-   "viento_max": 3.4,
-   "dir_viento": 19.0
+   "viento": 0.2,
+   "viento_max": 6.9,
+   "dir_viento": 26.0
   },
   "inia:210": {
    "id": "210",
@@ -220,14 +220,14 @@
    "institucion": "INIA",
    "estado": "en línea",
    "vigencia": "hoy",
-   "t_min": 10.7,
+   "t_min": 10.2,
    "t_max": 12.0,
    "hr": 95.8,
-   "lluvia_hoy": 18.1,
+   "lluvia_hoy": 25.8,
    "lluvia_ayer": 0.1,
-   "viento": 0.5,
+   "viento": 0.4,
    "viento_max": 11.2,
-   "dir_viento": 103.0
+   "dir_viento": 93.0
   },
   "inia:303": {
    "id": "303",
@@ -239,14 +239,14 @@
    "institucion": "INIA",
    "estado": "en línea",
    "vigencia": "hoy",
-   "t_min": 9.5,
+   "t_min": 7.7,
    "t_max": 11.2,
-   "hr": 99.9,
-   "lluvia_hoy": 21.1,
+   "hr": 99.6,
+   "lluvia_hoy": 28.7,
    "lluvia_ayer": 0.1,
-   "viento": 1.0,
-   "viento_max": 10.2,
-   "dir_viento": 83.0
+   "viento": 1.2,
+   "viento_max": 11.0,
+   "dir_viento": 88.0
   },
   "inia:163": {
    "id": "163",
@@ -258,14 +258,14 @@
    "institucion": "INIA",
    "estado": "en línea",
    "vigencia": "hoy",
-   "t_min": 11.2,
+   "t_min": 9.1,
    "t_max": 12.1,
    "hr": 95.4,
-   "lluvia_hoy": 25.8,
+   "lluvia_hoy": 32.7,
    "lluvia_ayer": 0.5,
-   "viento": 0.6,
-   "viento_max": 7.5,
-   "dir_viento": 101.0
+   "viento": 0.7,
+   "viento_max": 8.6,
+   "dir_viento": 99.0
   },
   "inia:334": {
    "id": "334",
@@ -280,11 +280,11 @@
    "t_min": 11.7,
    "t_max": 12.4,
    "hr": 96.5,
-   "lluvia_hoy": 16.5,
+   "lluvia_hoy": 17.7,
    "lluvia_ayer": 6.2,
    "viento": 0.4,
    "viento_max": 7.7,
-   "dir_viento": 164.0
+   "dir_viento": 138.0
   },
   "inia:228": {
    "id": "228",
@@ -296,14 +296,14 @@
    "institucion": "INIA",
    "estado": "en línea",
    "vigencia": "hoy",
-   "t_min": 11.4,
+   "t_min": 10.4,
    "t_max": 12.6,
    "hr": 93.9,
-   "lluvia_hoy": 17.8,
+   "lluvia_hoy": 23.9,
    "lluvia_ayer": 0.0,
-   "viento": 0.1,
-   "viento_max": 5.6,
-   "dir_viento": 31.0
+   "viento": 0.7,
+   "viento_max": 16.4,
+   "dir_viento": 42.0
   },
   "inia:52": {
    "id": "52",
@@ -315,14 +315,14 @@
    "institucion": "INIA",
    "estado": "en línea",
    "vigencia": "hoy",
-   "t_min": 10.9,
+   "t_min": 9.7,
    "t_max": 12.1,
-   "hr": 98.3,
-   "lluvia_hoy": 24.9,
+   "hr": 96.4,
+   "lluvia_hoy": 31.5,
    "lluvia_ayer": 1.7,
-   "viento": 2.5,
-   "viento_max": 10.4,
-   "dir_viento": 170.0
+   "viento": 2.8,
+   "viento_max": 12.1,
+   "dir_viento": 157.0
   },
   "inia:329": {
    "id": "329",
@@ -334,14 +334,14 @@
    "institucion": "VDCH",
    "estado": "en línea",
    "vigencia": "hoy",
-   "t_min": 10.4,
+   "t_min": 8.9,
    "t_max": 11.6,
-   "hr": 91.2,
-   "lluvia_hoy": 23.0,
+   "hr": 90.4,
+   "lluvia_hoy": 27.0,
    "lluvia_ayer": 0.4,
-   "viento": 2.5,
-   "viento_max": 11.2,
-   "dir_viento": 142.0
+   "viento": 3.5,
+   "viento_max": 16.9,
+   "dir_viento": 126.0
   },
   "ext:155": {
    "id": "155",
@@ -372,14 +372,14 @@
    "institucion": "INIA",
    "estado": "en línea",
    "vigencia": "hoy",
-   "t_min": 10.1,
+   "t_min": 8.2,
    "t_max": 11.1,
-   "hr": 95.6,
-   "lluvia_hoy": 20.8,
+   "hr": 93.8,
+   "lluvia_hoy": 25.6,
    "lluvia_ayer": 3.6,
-   "viento": 2.4,
+   "viento": 2.9,
    "viento_max": 16.7,
-   "dir_viento": 130.0
+   "dir_viento": 126.0
   },
   "ext:1031": {
    "id": "1031",
@@ -394,9 +394,9 @@
    "t_min": 10.0,
    "t_max": 11.0,
    "hr": 99.0,
-   "lluvia_hoy": 24.8,
+   "lluvia_hoy": 30.6,
    "lluvia_ayer": 4.3,
-   "viento": 2.9,
+   "viento": 3.2,
    "viento_max": 14.0,
    "dir_viento": 182.0
   },
@@ -411,13 +411,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 11.0,
-   "t_max": 13.0,
+   "t_max": 14.3,
    "hr": 98.1,
-   "lluvia_hoy": 10.1,
+   "lluvia_hoy": 11.8,
    "lluvia_ayer": 1.7,
    "viento": 0.0,
    "viento_max": 7.9,
-   "dir_viento": 165.0
+   "dir_viento": 172.0
   },
   "ext:156": {
    "id": "156",
@@ -432,11 +432,11 @@
    "t_min": 11.4,
    "t_max": 12.4,
    "hr": 97.9,
-   "lluvia_hoy": 5.2,
+   "lluvia_hoy": 6.1,
    "lluvia_ayer": 1.5,
-   "viento": 6.7,
+   "viento": 6.6,
    "viento_max": 17.3,
-   "dir_viento": 130.0
+   "dir_viento": 124.0
   },
   "ext:992": {
    "id": "992",
@@ -451,11 +451,11 @@
    "t_min": 10.0,
    "t_max": 11.2,
    "hr": 99.0,
-   "lluvia_hoy": 13.3,
+   "lluvia_hoy": 17.3,
    "lluvia_ayer": 17.1,
-   "viento": 1.3,
-   "viento_max": 11.2,
-   "dir_viento": 78.0
+   "viento": 1.5,
+   "viento_max": 14.0,
+   "dir_viento": 93.0
   },
   "ext:982": {
    "id": "982",
@@ -468,13 +468,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 11.1,
-   "t_max": 13.0,
-   "hr": 97.4,
-   "lluvia_hoy": 2.5,
+   "t_max": 15.5,
+   "hr": 91.6,
+   "lluvia_hoy": 2.7,
    "lluvia_ayer": 1.0,
-   "viento": 0.0,
+   "viento": 1.0,
    "viento_max": 7.9,
-   "dir_viento": 127.0
+   "dir_viento": 116.0
   },
   "inia:333": {
    "id": "333",
@@ -487,13 +487,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 10.9,
-   "t_max": 14.3,
-   "hr": 89.1,
-   "lluvia_hoy": 3.7,
+   "t_max": 14.6,
+   "hr": 87.4,
+   "lluvia_hoy": 4.7,
    "lluvia_ayer": 0.9,
-   "viento": 0.8,
+   "viento": 1.0,
    "viento_max": 16.1,
-   "dir_viento": 118.0
+   "dir_viento": 126.0
   },
   "inia:135": {
    "id": "135",
@@ -506,13 +506,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 10.9,
-   "t_max": 11.8,
+   "t_max": 12.1,
    "hr": 91.6,
-   "lluvia_hoy": 7.9,
+   "lluvia_hoy": 9.0,
    "lluvia_ayer": 6.5,
-   "viento": 0.2,
-   "viento_max": 8.0,
-   "dir_viento": 39.0
+   "viento": 0.3,
+   "viento_max": 8.3,
+   "dir_viento": 46.0
   },
   "ext:977": {
    "id": "977",
@@ -525,13 +525,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 10.7,
-   "t_max": 13.7,
-   "hr": 92.2,
+   "t_max": 14.6,
+   "hr": 89.7,
    "lluvia_hoy": 2.6,
    "lluvia_ayer": 2.2,
    "viento": 0.0,
    "viento_max": 1.1,
-   "dir_viento": 101.0
+   "dir_viento": 94.0
   },
   "inia:22": {
    "id": "22",
@@ -544,13 +544,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 10.8,
-   "t_max": 13.6,
-   "hr": 95.3,
+   "t_max": 14.0,
+   "hr": 89.4,
    "lluvia_hoy": 15.1,
    "lluvia_ayer": 0.5,
-   "viento": 1.3,
+   "viento": 1.4,
    "viento_max": 23.7,
-   "dir_viento": 78.0
+   "dir_viento": 100.0
   },
   "inia:11": {
    "id": "11",
@@ -563,13 +563,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 8.8,
-   "t_max": 12.8,
-   "hr": 91.2,
-   "lluvia_hoy": 5.9,
+   "t_max": 14.3,
+   "hr": 85.4,
+   "lluvia_hoy": 6.0,
    "lluvia_ayer": 2.4,
-   "viento": 1.8,
+   "viento": 2.0,
    "viento_max": 19.6,
-   "dir_viento": 160.0
+   "dir_viento": 157.0
   },
   "inia:136": {
    "id": "136",
@@ -582,13 +582,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 10.4,
-   "t_max": 12.4,
-   "hr": 88.5,
+   "t_max": 13.0,
+   "hr": 88.2,
    "lluvia_hoy": 3.8,
    "lluvia_ayer": 2.8,
-   "viento": 3.0,
-   "viento_max": 12.1,
-   "dir_viento": 76.0
+   "viento": 3.6,
+   "viento_max": 13.7,
+   "dir_viento": 69.0
   },
   "ext:974": {
    "id": "974",
@@ -601,7 +601,7 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 11.1,
-   "t_max": 12.4,
+   "t_max": 13.3,
    "hr": 91.4,
    "lluvia_hoy": 2.9,
    "lluvia_ayer": 1.8,
@@ -620,13 +620,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 10.2,
-   "t_max": 13.7,
-   "hr": 89.3,
-   "lluvia_hoy": 7.3,
+   "t_max": 14.4,
+   "hr": 85.8,
+   "lluvia_hoy": 9.5,
    "lluvia_ayer": 3.1,
    "viento": 4.3,
    "viento_max": 22.3,
-   "dir_viento": 117.0
+   "dir_viento": 105.0
   },
   "inia:46": {
    "id": "46",
@@ -639,13 +639,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 8.4,
-   "t_max": 12.7,
-   "hr": 90.6,
-   "lluvia_hoy": 9.4,
+   "t_max": 13.3,
+   "hr": 88.6,
+   "lluvia_hoy": 9.6,
    "lluvia_ayer": 1.7,
-   "viento": 1.7,
+   "viento": 1.5,
    "viento_max": 17.5,
-   "dir_viento": 49.0
+   "dir_viento": 56.0
   },
   "ext:960": {
    "id": "960",
@@ -658,13 +658,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 9.5,
-   "t_max": 13.6,
-   "hr": 92.0,
+   "t_max": 14.0,
+   "hr": 90.8,
    "lluvia_hoy": 10.2,
    "lluvia_ayer": 1.2,
-   "viento": 3.4,
+   "viento": 3.6,
    "viento_max": 14.4,
-   "dir_viento": 90.0
+   "dir_viento": 113.0
   },
   "inia:139": {
    "id": "139",
@@ -677,13 +677,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 9.7,
-   "t_max": 12.2,
+   "t_max": 12.8,
    "hr": 90.6,
    "lluvia_hoy": 16.7,
    "lluvia_ayer": 1.6,
-   "viento": 8.0,
+   "viento": 7.6,
    "viento_max": 23.1,
-   "dir_viento": 87.0
+   "dir_viento": 114.0
   },
   "ext:157": {
    "id": "157",
@@ -698,11 +698,11 @@
    "t_min": 9.7,
    "t_max": 12.1,
    "hr": 92.4,
-   "lluvia_hoy": 16.6,
+   "lluvia_hoy": 18.2,
    "lluvia_ayer": 0.0,
-   "viento": 12.3,
+   "viento": 11.3,
    "viento_max": 24.1,
-   "dir_viento": 99.0
+   "dir_viento": 110.0
   },
   "inia:351": {
    "id": "351",
@@ -715,13 +715,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 10.0,
-   "t_max": 12.9,
-   "hr": 85.4,
+   "t_max": 13.0,
+   "hr": 85.6,
    "lluvia_hoy": 17.4,
    "lluvia_ayer": 0.1,
-   "viento": 4.6,
+   "viento": 4.5,
    "viento_max": 16.4,
-   "dir_viento": 227.0
+   "dir_viento": 231.0
   },
   "inia:73": {
    "id": "73",
@@ -734,13 +734,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 7.6,
-   "t_max": 10.7,
+   "t_max": 11.0,
    "hr": 90.4,
-   "lluvia_hoy": 21.6,
+   "lluvia_hoy": 21.7,
    "lluvia_ayer": 1.5,
-   "viento": 3.5,
+   "viento": 3.8,
    "viento_max": 18.8,
-   "dir_viento": 73.0
+   "dir_viento": 64.0
   },
   "inia:49": {
    "id": "49",
@@ -755,11 +755,11 @@
    "t_min": 9.0,
    "t_max": 12.9,
    "hr": 84.9,
-   "lluvia_hoy": 18.5,
+   "lluvia_hoy": 18.7,
    "lluvia_ayer": 0.2,
-   "viento": 5.3,
+   "viento": 5.2,
    "viento_max": 23.7,
-   "dir_viento": 233.0
+   "dir_viento": 241.0
   },
   "ext:229": {
    "id": "229",
@@ -772,13 +772,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 10.0,
-   "t_max": 11.9,
-   "hr": 97.8,
+   "t_max": 13.1,
+   "hr": 91.7,
    "lluvia_hoy": 3.8,
    "lluvia_ayer": 12.2,
-   "viento": 13.7,
+   "viento": 13.1,
    "viento_max": 35.3,
-   "dir_viento": 24.0
+   "dir_viento": 51.0
   },
   "ext:162": {
    "id": "162",
@@ -791,13 +791,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 9.6,
-   "t_max": 12.5,
-   "hr": 94.0,
+   "t_max": 13.9,
+   "hr": 88.8,
    "lluvia_hoy": 8.4,
    "lluvia_ayer": 6.7,
-   "viento": 8.6,
+   "viento": 7.9,
    "viento_max": 27.4,
-   "dir_viento": 109.0
+   "dir_viento": 118.0
   },
   "inia:237": {
    "id": "237",
@@ -810,13 +810,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 10.5,
-   "t_max": 13.8,
-   "hr": 89.4,
-   "lluvia_hoy": 7.6,
+   "t_max": 14.0,
+   "hr": 87.6,
+   "lluvia_hoy": 7.8,
    "lluvia_ayer": 37.8,
-   "viento": 2.4,
+   "viento": 2.9,
    "viento_max": 22.9,
-   "dir_viento": 37.0
+   "dir_viento": 51.0
   },
   "inia:235": {
    "id": "235",
@@ -829,13 +829,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 8.2,
-   "t_max": 10.7,
-   "hr": 90.9,
+   "t_max": 12.1,
+   "hr": 76.1,
    "lluvia_hoy": 13.9,
    "lluvia_ayer": 5.3,
-   "viento": 11.8,
+   "viento": 10.9,
    "viento_max": 35.8,
-   "dir_viento": 98.0
+   "dir_viento": 115.0
   },
   "ext:1023": {
    "id": "1023",
@@ -848,13 +848,13 @@
    "estado": "en línea",
    "vigencia": "hoy",
    "t_min": 8.6,
-   "t_max": 11.1,
-   "hr": 94.9,
+   "t_max": 11.8,
+   "hr": 87.5,
    "lluvia_hoy": 19.5,
    "lluvia_ayer": 8.9,
-   "viento": 23.5,
+   "viento": 24.2,
    "viento_max": 52.2,
-   "dir_viento": 249.0
+   "dir_viento": 245.0
   },
   "ext:76": {
    "id": "76",
@@ -868,12 +868,12 @@
    "vigencia": "hoy",
    "t_min": 10.2,
    "t_max": 11.8,
-   "hr": 88.9,
-   "lluvia_hoy": 2.0,
+   "hr": 88.3,
+   "lluvia_hoy": 2.3,
    "lluvia_ayer": 9.3,
-   "viento": 6.0,
+   "viento": 6.3,
    "viento_max": 22.3,
-   "dir_viento": 167.0
+   "dir_viento": 176.0
   }
  },
  "name2id": {
